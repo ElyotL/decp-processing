@@ -9,6 +9,7 @@ pandas = "*"
 tableschema = "*"
 frictionless = "*"
 datapackage-to-datasette = "*"
+prefect = "*"
 
 [dev-packages]
 ipykernel = "*"
