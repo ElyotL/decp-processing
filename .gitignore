@@ -1,0 +1,6 @@
+dist
+logs
+.env
+*.csv
+.venv
+*.egg-info
