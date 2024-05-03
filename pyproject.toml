@@ -9,6 +9,7 @@ authors = [
 dependencies = [
     "python-dotenv",
     "pandas",
+    "pyarrow",
     "tableschema",
     "frictionless",
     "datapackage-to-datasette",
@@ -17,5 +18,5 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pre-commit"
+    "pre-commit",
 ]
