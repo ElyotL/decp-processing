@@ -1,0 +1,9 @@
+dist
+logs
+.env
+*.csv
+.venv
+*.egg-info
+*.parquet
+*.gz
+*.zip

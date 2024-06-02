@@ -1,0 +1,22 @@
+[project]
+name = "decp-processing"
+description = "An introductory project to Prefect"
+version = "0.1.0"
+requires-python = ">= 3.8"
+authors = [
+    { name = "Colin Maudry", email = "colin+decp@maudry.com" }
+]
+dependencies = [
+    "python-dotenv",
+    "pandas",
+    "pyarrow",
+    "tableschema",
+    "frictionless",
+    "datapackage-to-datasette",
+    "ipykernel",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+]
