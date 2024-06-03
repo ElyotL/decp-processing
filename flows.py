@@ -1,8 +1,109 @@
 from prefect import flow, get_run_logger
 import datetime
+from dotenv import load_dotenv
+import os
 
-@flow(retries=3, retry_delay_seconds=20)
-def decp():
+from tasks.get import *
+from tasks.clean import *
+from tasks.transform import *
+from tasks.enrich import *
+from tasks.output import *
+from tasks.test import *
+
+
+@flow(retries=3, retry_delay_seconds=20, log_prints=True)
+def decp_processing():
+    # TRAITEMENT MARCHÉS
+
+    load_dotenv()
+    logger = get_run_logger()
+
     # Timestamp
     date_now = datetime.date.today().isoformat()
-    datetime_now = datetime.datetime.now().isoformat()
+
+    print("Récupération des données...")
+    df: pd.DataFrame = get_official_decp(date_now)
+    logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
+
+    print("Nettoyage...")
+    df = clean_official_decp(df)
+
+    print("Typage des colonnes...")
+    df = fix_data_types(df)
+
+    print("Explosion des titulaires, un par ligne...")
+    df = explode_titulaires(df)
+
+    print("Ajout des colonnes manquantes...")
+    df = add_missing_columns(df)
+
+    # DONNÉES SIRENE ACHETEURS
+
+    print("Extraction des SIRET des acheteurs...")
+    df_sirets_acheteurs = extract_unique_acheteurs_siret(df, "acheteur.id")
+
+    print("Ajout des données établissements (acheteurs)...")
+    df_sirets_acheteurs = add_etablissement_data_to_acheteurs(df_sirets_acheteurs)
+
+    print("Ajout des données unités légales (acheteurs)...")
+    df_sirets_acheteurs = add_unite_legale_data_to_acheteurs(df_sirets_acheteurs)
+
+    print("Construction du champ acheteur.nom à partir des données SIRENE...")
+    df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
+
+    print("Jointure des données acheteurs enrichies avec les DECP...")
+    df = merge_sirets_acheteurs(df, df_sirets_acheteurs)
+    del df_sirets_acheteurs
+
+    print("Enregistrement des DECP aux formats CSV et Parquet...")
+    save_to_files(df, "dist/decp")
+
+    print("Suppression de colonnes et déduplication pour les DECP Sans Titulaires...")
+    df_decp_sans_titulaires = make_decp_sans_titulaires(df)
+    save_to_files(df_decp_sans_titulaires, "dist/decp-sans-titulaires")
+    del df_decp_sans_titulaires
+
+    # DONNÉES SIRENE TITULAIRES
+
+    print("Extraction des SIRET des titulaires...")
+    df_sirets_titulaires = extract_unique_titulaires_siret(df)
+
+    print("Ajout des données établissements (titulaires)...")
+    df_sirets_titulaires = add_etablissement_data_to_titulaires(df_sirets_titulaires)
+
+    print("Ajout des données unités légales (titulaires)...")
+    df_sirets_titulaires = add_unite_legale_data_to_titulaires(df_sirets_titulaires)
+
+    print("Amélioration des données unités légales des titulaires...")
+    df_sirets_titulaires = improve_titulaire_unite_legale_data(df_sirets_titulaires)
+
+    print("Renommage de certaines colonnes unités légales (titulaires)...")
+    df_sirets_titulaires = rename_titulaire_sirene_columns(df_sirets_titulaires)
+
+    print("Jointure pour créer les données DECP Titulaires...")
+    df_decp_titulaires = merge_sirets_titulaires(df, df_sirets_titulaires)
+    del df_sirets_titulaires
+
+    print("Enregistrement des DECP Titulaires aux formats CSV et Parquet...")
+    save_to_files(df_decp_titulaires, "dist/decp-titulaires")
+
+    # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
+
+    if not (os.curdir.endswith("dist")):
+        os.chdir("./dist")
+        print(os.curdir)
+
+    print("Validation des données DECP avec le TableSchema...")
+    validate_decp_against_tableschema()
+
+    print("Création du data package (JSON)....")
+    make_data_package()
+
+    print("Création de la DB SQLite et des métadonnées datasette...")
+    make_sqllite_and_datasette_metadata()
+
+    # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
+
+
+if __name__ == "__main__":
+    decp_processing()
