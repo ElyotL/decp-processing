@@ -42,7 +42,11 @@ def add_missing_columns(df: pd.DataFrame):
 
 def make_decp_sans_titulaires(df: pd.DataFrame):
     df_decp_sans_titulaires = df.drop(
-        columns=["titulaire.id", "titulaire.nom", "titulaire.typeIdentifiant"]
+        columns=[
+            "titulaire.id",
+            "titulaire.denominationSociale",
+            "titulaire.typeIdentifiant",
+        ]
     )
     df_decp_sans_titulaires = df_decp_sans_titulaires.drop_duplicates()
     return df_decp_sans_titulaires
@@ -50,7 +54,7 @@ def make_decp_sans_titulaires(df: pd.DataFrame):
 
 def extract_unique_acheteurs_siret(df: pd.DataFrame):
     # Extraction des SIRET des DECP
-    decp_acheteurs_df = df[["acheteur.id"]].copy()
+    decp_acheteurs_df = df[["acheteur.id"]]
     decp_acheteurs_df = decp_acheteurs_df.drop_duplicates().loc[
         decp_acheteurs_df["acheteur.id"] != ""
     ]
@@ -67,7 +71,7 @@ def extract_unique_titulaires_siret(df: pd.DataFrame):
     df_sirets_titulaires = df_sirets_titulaires[
         df_sirets_titulaires["titulaire.typeIdentifiant"] == "SIRET"
     ]
-    print(f"{df_sirets_titulaires.index.size} titulaires uniques")
+    print(f"{len(df_sirets_titulaires)} titulaires uniques")
 
     return df_sirets_titulaires
 

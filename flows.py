@@ -40,7 +40,7 @@ def decp_processing():
     # DONNÉES SIRENE ACHETEURS
 
     print("Extraction des SIRET des acheteurs...")
-    df_sirets_acheteurs = extract_unique_acheteurs_siret(df, "acheteur.id")
+    df_sirets_acheteurs = extract_unique_acheteurs_siret(df)
 
     print("Ajout des données établissements (acheteurs)...")
     df_sirets_acheteurs = add_etablissement_data_to_acheteurs(df_sirets_acheteurs)
@@ -86,6 +86,7 @@ def decp_processing():
 
     print("Enregistrement des DECP Titulaires aux formats CSV et Parquet...")
     save_to_files(df_decp_titulaires, "dist/decp-titulaires")
+    del df_decp_titulaires
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
 
