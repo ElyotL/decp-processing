@@ -1,9 +1,10 @@
 import pandas as pd
+from os import getenv
 
 
 def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
     etablissement_df_chunked = pd.read_csv(
-        "data/StockEtablissement_utf8_geo.csv.gz",
+        getenv("SIRENE_ETABLISSEMENTS_PATH"),
         chunksize=(1000000),
         dtype="object",
         index_col=None,
@@ -38,7 +39,7 @@ def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
 
 def add_unite_legale_data_to_acheteurs(decp_acheteurs_df: pd.DataFrame):
     unite_legale_df_chunked = pd.read_csv(
-        "./data/StockUniteLegale_utf8.zip",
+        getenv("SIRENE_UNITES_LEGALES_PATH"),
         index_col=None,
         dtype="object",
         sep=",",
@@ -78,7 +79,7 @@ def add_etablissement_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
         "etatAdministratifEtablissement": "category",
     }
     etablissement_df_chunked = pd.read_csv(
-        "data/StockEtablissement_utf8_geo.csv.gz",
+        getenv("SIRENE_ETABLISSEMENTS_PATH"),
         chunksize=(500000),
         dtype=dtypes_etablissements,
         index_col=None,
@@ -130,7 +131,7 @@ def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
     }
 
     unite_legale_df_chunked = pd.read_csv(
-        "./data/StockUniteLegale_utf8.zip",
+        getenv("SIRENE_UNITES_LEGALES_PATH"),
         index_col=None,
         dtype=dtypes_uniteLegales,
         sep=",",

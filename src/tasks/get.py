@@ -7,9 +7,14 @@ from pathlib import Path
 
 @task
 def get_official_decp(date_now: str):
-    decp_augmente_valides_file: Path = Path(
-        f"data/decp_augmente_valides_{date_now}.csv"
-    )
+    if os.getenv("DECP_ENRICHIES_VALIDES_URL").startswith("https"):
+        # Prod file
+        decp_augmente_valides_file: Path = Path(
+            f"data/decp_augmente_valides_{date_now}.csv"
+        )
+    else:
+        # Test file, pas de téléchargement
+        decp_augmente_valides_file: Path = Path(os.getenv("DECP_ENRICHIES_VALIDES_URL"))
 
     if not (os.path.exists(decp_augmente_valides_file)):
         request = get(os.getenv("DECP_ENRICHIES_VALIDES_URL"))
@@ -23,7 +28,6 @@ def get_official_decp(date_now: str):
         sep=";",
         dtype="object",
         index_col=None,
-        nrows=10000,
     )
 
     return df
