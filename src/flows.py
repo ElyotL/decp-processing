@@ -107,4 +107,8 @@ def decp_processing():
 
 
 if __name__ == "__main__":
-    decp_processing()
+    decp_processing.serve(
+        name="decp-processing-cron",
+        #                        cron="* 6 * * * ",
+        description="Téléchargement, traitement, et publication des DECP.",
+    )

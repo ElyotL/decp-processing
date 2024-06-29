@@ -1,4 +1,5 @@
 import pandas as pd
+from tasks.get import get_decp_json
 
 
 def explode_titulaires(df: pd.DataFrame):
@@ -160,3 +161,45 @@ def rename_titulaire_sirene_columns(df_sirets_titulaires: pd.DataFrame):
     df_sirets_titulaires = df_sirets_titulaires.rename(columns=renaming)
 
     return df_sirets_titulaires
+
+
+def identify_current_data(df: pd.DataFrame, decp_json_stream=None):
+    """Récupérer depuis les données originales en JSON le nombre de modifications
+    de chaque marché. En le comparant aux deux derniers chiffres de l'id de marché
+    (qui est censé être le nombre de modifications), on peut isoler l'identifiant
+    racine du marché, et l'utiliser pour rassembler les marchés ayant le même historique
+    entre eux, puis déterminer lequel porte les modifications les plus récentes.
+    """
+    df = df.copy()[["acheteur.id", "id"]].sort_values(by=["acheteur.id", "id"])
+    df = df.drop_duplicates()
+
+    if decp_json_stream:
+        decp_json = decp_json_stream
+    else:
+        decp_json = get_decp_json()
+
+    decp_json_marches = decp_json["marches"]
+
+    id_and_modifications = []
+
+    for marche in decp_json_marches.persistent():
+        if marche["_type"] == "Marché":
+            id = marche["id"]
+            id_acheteur = marche["acheteur.id"]
+
+            try:
+                nb_modifications = len(marche["modifications"])
+            except KeyError:
+                nb_modifications = 0
+
+            if int(id[-2:]) == nb_modifications:
+                id_and_modification = {
+                    "id": id[:-2],
+                    "acheteur.id": id_acheteur,
+                    "nb_modifications": nb_modifications,
+                }
+                id_and_modifications.append(id_and_modification)
+
+        # TODO : lier les données sur les modifications
+
+    return id_and_modifications

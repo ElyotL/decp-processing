@@ -31,3 +31,24 @@ def get_official_decp(date_now: str):
     )
 
     return df
+
+
+@task
+def get_decp_json(date_now: str):
+    import json_stream
+
+    if os.getenv("DECP_JSON_URL").startswith("https"):
+        # Prod file
+        decp_json_file: Path = Path(f"data/decp_{date_now}.csv")
+    else:
+        # Test file, pas de téléchargement
+        decp_json_file: Path = Path(os.getenv("DECP_JSON_URL"))
+
+    if not (os.path.exists(decp_json_file)):
+        request = get(os.getenv("DECP_JSON_URL"))
+        with open(decp_json_file, "wb") as file:
+            file.write(request.content)
+    else:
+        print(f"DECP JSON d'aujourd'hui déjà téléchargées ({date_now})")
+
+    return json_stream.load(decp_json_file)

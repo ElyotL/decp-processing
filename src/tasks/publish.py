@@ -1,7 +1,8 @@
 from requests import post
 import json
+from os import getenv
 
-api_key = os.getenv("DATAGOUVFR_API_KEY")
+api_key = getenv("DATAGOUVFR_API_KEY")
 api = "https://www.data.gouv.fr/api/1"
 dataset_id = "608c055b35eb4e6ee20eb325"
 

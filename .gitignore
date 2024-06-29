@@ -1,6 +1,6 @@
 dist
 logs
-.env
+*.env
 *.csv
 .venv
 *.egg-info
