@@ -163,7 +163,7 @@ def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
 def merge_sirets_acheteurs(decp_df: pd.DataFrame, df_sirets_acheteurs: pd.DataFrame):
     final_columns = ["acheteur.id", "acheteur.nom"]
 
-    decp_df = pd.read_parquet("dist/decp.parquet").drop(columns=["acheteur.nom"])
+    decp_df = decp_df.drop(columns=["acheteur.nom"])
     decp_df = pd.merge(
         decp_df,
         df_sirets_acheteurs[final_columns],
