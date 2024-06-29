@@ -21,4 +21,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
 ]
