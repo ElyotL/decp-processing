@@ -1,13 +1,18 @@
 from prefect import flow
 import pytest
 from prefect.testing.utilities import prefect_test_harness
-from prefect.logging import disable_run_logger
 from flows import decp_processing
 from dotenv import find_dotenv, load_dotenv
-
-# from ..flows import decp_processing
 import os
-from dotenv import load_dotenv
+
+
+from prefect.testing.utilities import prefect_test_harness
+
+
+@pytest.fixture(autouse=True, scope="session")
+def prefect_test_fixture():
+    with prefect_test_harness():
+        yield
 
 
 def test_flow():

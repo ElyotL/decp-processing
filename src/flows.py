@@ -11,7 +11,7 @@ from tasks.output import *
 from tasks.test import *
 
 
-@flow(retries=3, retry_delay_seconds=20, log_prints=True)
+@flow(log_prints=True)
 def decp_processing():
     # TRAITEMENT MARCHÉS
 
@@ -35,7 +35,7 @@ def decp_processing():
     df = explode_titulaires(df)
 
     print("Ajout des colonnes manquantes...")
-    df = add_missing_columns(df)
+    df = setup_tableschema_columns(df)
 
     # DONNÉES SIRENE ACHETEURS
 

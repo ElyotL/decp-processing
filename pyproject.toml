@@ -30,3 +30,4 @@ pythonpath = [
 testpaths = [
     "tests",
 ]
+addopts = "-p no:warnings"

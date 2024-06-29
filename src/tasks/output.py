@@ -10,29 +10,31 @@ def save_to_files(df: pd.DataFrame, path: str):
 def make_data_package():
     from frictionless import Package, Resource, Pipeline, steps
 
+    common_steps = [
+        steps.field_update(name="id", descriptor={"type": "string"}),
+        steps.field_update(name="uid", descriptor={"type": "string"}),
+        steps.field_update(name="acheteur.id", descriptor={"type": "string"}),
+        steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
+    ]
+
     outputs = [
         {
             "csv": "decp.csv",
-            "steps": [
-                steps.field_update(name="acheteur.id", descriptor={"type": "string"}),
-                steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
+            "steps": common_steps
+            + [
                 steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
             ],
         },
         {
             "csv": "decp-sans-titulaires.csv",
-            "steps": [
-                steps.field_update(name="acheteur.id", descriptor={"type": "string"}),
-                steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
-            ],
+            "steps": common_steps,
         },
         {
             "csv": "decp-titulaires.csv",
-            "steps": [
-                steps.field_update(name="acheteur.id", descriptor={"type": "string"}),
-                steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
+            "steps": common_steps
+            + [
                 steps.field_update(name="departement", descriptor={"type": "string"}),
-                steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
+                steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
             ],
         },
     ]

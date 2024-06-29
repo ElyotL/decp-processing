@@ -30,12 +30,18 @@ def explode_titulaires(df: pd.DataFrame):
     return df
 
 
-def add_missing_columns(df: pd.DataFrame):
+def setup_tableschema_columns(df: pd.DataFrame):
     # Ajout colonnes manquantes
 
     df["uid"] = df["acheteur.id"] + df["id"]
     df["donneesActuelles"] = ""  # TODO
     df["anomalies"] = ""  # TODO
+
+    df_example_tableschema = pd.read_csv(
+        "https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/main/exemples/exemple-valide.csv",
+        nrows=1,
+    )
+    df = df[df_example_tableschema.columns]
 
     return df
 
