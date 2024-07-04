@@ -29,7 +29,7 @@ def decp_processing():
     command = "git pull origin prefect"
     subprocess.run(command.split(" "))
 
-    print("Récupération des données...")
+    print("Récupération des données source...")
     df: pd.DataFrame = get_official_decp(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
