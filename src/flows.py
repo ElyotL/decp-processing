@@ -25,6 +25,7 @@ def decp_processing():
     date_now = datetime.now().isoformat()
 
     # git pull
+    print("Récupération du code (pull)...")
     command = "git pull origin prefect"
     subprocess.run(command.split(" "))
 
@@ -32,7 +33,7 @@ def decp_processing():
     df: pd.DataFrame = get_official_decp(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
-    print("Nettoyage...")
+    print("Nettoyage des données...")
     df = clean_official_decp(df)
 
     print("Typage des colonnes...")
