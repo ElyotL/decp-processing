@@ -25,6 +25,7 @@ def decp_processing():
     date_now = datetime.now().isoformat()
 
     # git pull
+    print("Mise à jour du code depuis Github...")
     subprocess.run(["git", "pull"])
 
     print("Récupération des données...")
