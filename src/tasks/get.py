@@ -26,7 +26,7 @@ def get_official_decp(date_now: str):
     df: pd.DataFrame = pd.read_csv(
         decp_augmente_valides_file,
         sep=";",
-        dtype="object",
+        dtype=str,
         index_col=None,
     )
 
@@ -52,3 +52,9 @@ def get_decp_json(date_now: str):
         print(f"DECP JSON d'aujourd'hui déjà téléchargées ({date_now})")
 
     return json_stream.load(decp_json_file)
+
+
+def get_stats():
+    url = "https://www.data.gouv.fr/fr/datasets/r/8ded94de-3b80-4840-a5bb-7faad1c9c234"
+    df_stats = pd.read_csv(url, index_col=None)
+    return df_stats

@@ -1,6 +1,9 @@
 from requests import post
 import json
 from os import getenv
+import pandas as pd
+
+from src.tasks.get import get_stats
 
 api_key = getenv("DATAGOUVFR_API_KEY")
 api = "https://www.data.gouv.fr/api/1"
@@ -37,6 +40,7 @@ uploads = [
     },
     {"file": "decp.sqlite", "resource_id": "c6b08d03-7aa4-4132-b5b2-fd76633feecc"},
     {"file": "datapackage.json", "resource_id": "65194f6f-e273-4067-8075-56f072d56baf"},
+    {"file": "statistiques.csv", "resource_id": "8ded94de-3b80-4840-a5bb-7faad1c9c234"},
 ]
 
 for upload in uploads:

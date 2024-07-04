@@ -2,6 +2,8 @@ from prefect import flow, get_run_logger
 import datetime
 from dotenv import load_dotenv
 import os
+import subprocess
+
 
 from tasks.get import *
 from tasks.clean import *
@@ -9,6 +11,7 @@ from tasks.transform import *
 from tasks.enrich import *
 from tasks.output import *
 from tasks.test import *
+from tasks.analyse import *
 
 
 @flow(log_prints=True)
@@ -19,7 +22,10 @@ def decp_processing():
     logger = get_run_logger()
 
     # Timestamp
-    date_now = datetime.date.today().isoformat()
+    date_now = datetime.now().isoformat()
+
+    # git pull
+    subprocess.run(["git", "pull"])
 
     print("Récupération des données...")
     df: pd.DataFrame = get_official_decp(date_now)
@@ -30,6 +36,9 @@ def decp_processing():
 
     print("Typage des colonnes...")
     df = fix_data_types(df)
+
+    print("Analyse des données source...")
+    generate_stats(df)
 
     print("Explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
@@ -110,5 +119,9 @@ if __name__ == "__main__":
     decp_processing.serve(
         name="decp-processing-cron",
         cron="0 6 * * 1-5",
+        description="Téléchargement, traitement, et publication des DECP.",
+    )
+    decp_processing.serve(
+        name="decp-processing-once",
         description="Téléchargement, traitement, et publication des DECP.",
     )
