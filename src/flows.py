@@ -25,7 +25,8 @@ def decp_processing():
     date_now = datetime.now().isoformat()
 
     # git pull
-    subprocess.run(["git", "pull"])
+    command = "git pull origin prefect"
+    subprocess.run(command.split(" "))
 
     print("Récupération des données...")
     df: pd.DataFrame = get_official_decp(date_now)
