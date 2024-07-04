@@ -32,7 +32,7 @@ def decp_processing():
     df: pd.DataFrame = get_official_decp(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
-    print("Nettoyage...")
+    print("Nettoyage des données...")
     df = clean_official_decp(df)
 
     print("Typage des colonnes...")
