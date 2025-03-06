@@ -20,6 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit",
+    "pytest-env",
     "pytest",
 ]
 
@@ -30,4 +31,7 @@ pythonpath = [
 testpaths = [
     "tests",
 ]
+env = [
+    "DECP_ENRICHIES_VALIDES_URL=data/decp_augmente_valides_2025-03-06T09:54:03.321922.csv"
+]    
 addopts = "-p no:warnings"

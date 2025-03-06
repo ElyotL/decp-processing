@@ -2,7 +2,6 @@ from prefect import flow
 import pytest
 from prefect.testing.utilities import prefect_test_harness
 from flows import decp_processing
-from dotenv import find_dotenv, load_dotenv
 import os
 
 from flows import decp_processing
@@ -17,7 +16,7 @@ class TestFlow:
             yield
 
     def test_flow(self):
-        env_file = find_dotenv(".test.env")
-        load_dotenv(env_file)
+        decp_csv_file = os.getenv("DECP_ENRICHIES_VALIDES_URL")
+        print(decp_csv_file)
+        assert not (decp_csv_file.startswith("https"))
         decp_processing()
-        assert not (os.getenv("DECP_ENRICHIES_VALIDES_URL").startswith("https"))
