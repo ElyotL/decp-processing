@@ -29,7 +29,7 @@ Vous pouvez...
 
 - Python 3.8 ou plus récent
 - cargo ([installation rapide](https://rustup.rs))
-- fichier des
+- fichier .env avec l'adresse des fichiers source
 
 ## Installation
 
