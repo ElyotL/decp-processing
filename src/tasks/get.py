@@ -1,23 +1,26 @@
 import pandas as pd
 from httpx import get
 import os
-from prefect import task, get_run_logger
+from prefect import task
 from pathlib import Path
 
 
 @task
-def get_official_decp(date_now: str):
-    if os.getenv("DECP_ENRICHIES_VALIDES_URL").startswith("https"):
+def get_decp_csv(date_now: str):
+    """Téléchargement des DECP publiées par Bercy sur data.economie.gouv.fr."""
+    if os.getenv("DECP_ENRICHIES_VALIDES_2019_URL").startswith("https"):
         # Prod file
         decp_augmente_valides_file: Path = Path(
             f"data/decp_augmente_valides_{date_now}.csv"
         )
     else:
         # Test file, pas de téléchargement
-        decp_augmente_valides_file: Path = Path(os.getenv("DECP_ENRICHIES_VALIDES_URL"))
+        decp_augmente_valides_file: Path = Path(
+            os.getenv("DECP_ENRICHIES_VALIDES_2019_URL")
+        )
 
     if not (os.path.exists(decp_augmente_valides_file)):
-        request = get(os.getenv("DECP_ENRICHIES_VALIDES_URL"))
+        request = get(os.getenv("DECP_ENRICHIES_VALIDES_2019_URL"))
         with open(decp_augmente_valides_file, "wb") as file:
             file.write(request.content)
     else:

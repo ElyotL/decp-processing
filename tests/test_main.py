@@ -16,7 +16,7 @@ class TestFlow:
             yield
 
     def test_flow(self):
-        decp_csv_file = os.getenv("DECP_ENRICHIES_VALIDES_URL")
+        decp_csv_file = os.getenv("DECP_ENRICHIES_VALIDES_2019_URL")
         print(decp_csv_file)
         assert not (decp_csv_file.startswith("https"))
         decp_processing()
