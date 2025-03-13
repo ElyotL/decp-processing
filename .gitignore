@@ -2,6 +2,7 @@ dist
 logs
 *.env
 *.csv
+!decp_augmente_valides_test.csv
 .venv
 *.egg-info
 *.parquet
