@@ -86,7 +86,7 @@ def extract_unique_titulaires_siret(df: pd.DataFrame):
 def make_acheteur_nom(decp_acheteurs_df: pd.DataFrame):
     # Construction du champ acheteur.nom
 
-    from numpy import NaN
+    from numpy import nan as NaN
 
     def construct_nom(row):
         if row["enseigne1Etablissement"] is NaN:
@@ -163,7 +163,7 @@ def rename_titulaire_sirene_columns(df_sirets_titulaires: pd.DataFrame):
     return df_sirets_titulaires
 
 
-def identify_current_data(df: pd.DataFrame, decp_json_stream=None):
+def identify_current_data(df: pd.DataFrame, decp_json_test=None):
     """Récupérer depuis les données originales en JSON le nombre de modifications
     de chaque marché. En le comparant aux deux derniers chiffres de l'id de marché
     (qui est censé être le nombre de modifications), on peut isoler l'identifiant
@@ -173,32 +173,31 @@ def identify_current_data(df: pd.DataFrame, decp_json_stream=None):
     df = df.copy()[["acheteur.id", "id"]].sort_values(by=["acheteur.id", "id"])
     df = df.drop_duplicates()
 
-    if decp_json_stream:
-        decp_json = decp_json_stream
+    if type(decp_json_test) ==  pd.DataFrame:
+        decp_json = decp_json_test
     else:
         decp_json = get_decp_json()
 
-    decp_json_marches = decp_json["marches"]
+    decp_json_marches = decp_json["marches"]["marche"]
 
     id_and_modifications = []
 
-    for marche in decp_json_marches.persistent():
-        if marche["_type"] == "Marché":
-            id = marche["id"]
-            id_acheteur = marche["acheteur.id"]
+    for marche in decp_json_marches:
+        id = marche["id"]
+        id_acheteur = marche["acheteur"]["id"]
 
-            try:
-                nb_modifications = len(marche["modifications"])
-            except KeyError:
-                nb_modifications = 0
+        try:
+            nb_modifications = len(marche["modifications"])
+        except KeyError:
+            nb_modifications = 0
 
-            if int(id[-2:]) == nb_modifications:
-                id_and_modification = {
-                    "id": id[:-2],
-                    "acheteur.id": id_acheteur,
-                    "nb_modifications": nb_modifications,
-                }
-                id_and_modifications.append(id_and_modification)
+        if int(id[-2:]) == nb_modifications:
+            id_and_modification = {
+                "id": id[:-2],
+                "acheteur.id": id_acheteur,
+                "nb_modifications": nb_modifications,
+            }
+            id_and_modifications.append(id_and_modification)
 
         # TODO : lier les données sur les modifications
 
