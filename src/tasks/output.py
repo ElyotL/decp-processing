@@ -25,18 +25,18 @@ def make_data_package():
                 steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
             ],
         },
-        {
-            "csv": "decp-sans-titulaires.csv",
-            "steps": common_steps,
-        },
-        {
-            "csv": "decp-titulaires.csv",
-            "steps": common_steps
-            + [
-                steps.field_update(name="departement", descriptor={"type": "string"}),
-                steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
-            ],
-        },
+        # {
+        #     "csv": "decp-sans-titulaires.csv",
+        #     "steps": common_steps,
+        # },
+        # {
+        #     "csv": "decp-titulaires.csv",
+        #     "steps": common_steps
+        #     + [
+        #         steps.field_update(name="departement", descriptor={"type": "string"}),
+        #         steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
+        #     ],
+        # },
     ]
 
     resources = []

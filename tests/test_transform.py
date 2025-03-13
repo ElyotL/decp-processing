@@ -1,6 +1,5 @@
 import pytest
 import pandas as pd
-import json_stream
 from tasks.transform import identify_current_data
 
 
@@ -29,7 +28,7 @@ def decp_json():
         "nature": "ACCORD-CADRE",
         "datePublicationDonnees": "2020-08-06",
         "id": "20202020F1234900",
-        "acheteur.id": {"id": "13000548100010"},
+        "acheteur": {"id": "13000548100010"},
       },
       {
         "modifications": [{}],
@@ -44,12 +43,12 @@ def decp_json():
         ],
         "datePublicationDonnees": "2017-01-03",
         "id": "20172019S0767300",
-        "acheteur.id": {"id": "26380030200014"},
+        "acheteur": {"id": "26380030200014"},
       },
       {
         "datePublicationDonnees": "2019-01-03",
         "id": "20192019S0767300",
-        "acheteur.id": {"id": "26380030200014"},
+        "acheteur": {"id": "26380030200014"},
       }
     ]
     }

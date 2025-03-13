@@ -1,5 +1,5 @@
 import pandas as pd
-from numpy import NaN
+from numpy import nan as NaN
 
 
 def clean_official_decp(df: pd.DataFrame):

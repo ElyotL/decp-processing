@@ -18,6 +18,9 @@ def generate_stats(df: pd.DataFrame):
         )
         df_titulaires = pd.concat([df_titulaires, df_temp], ignore_index=True)
 
+    df.to_pickle("data/decp_before_stats.pkl")
+
+
     stats = [
         {
             "datetime": now.isoformat()[:-7],  # jusqu'aux secondes
@@ -31,33 +34,33 @@ def generate_stats(df: pd.DataFrame):
             - 1,  # -1 pour ne pas compter la valeur "acheteur vide"
             "nb_titulaires_uniques": df_titulaires.drop_duplicates().index.size
             - 1,  # -1 pour ne pas compter la valeur "titulaire vide"
-            "2024_nb_notifications": df.loc[
-                df["dateNotification"].str.startswith("2024")
-            ].index.size,
+            # "2024_nb_notifications": df.loc[
+            #     df["dateNotification"].str.startswith("2024")
+            # ].index.size,
             "2024_nb_publications": df.loc[
-                df["datePublicationDonnees"].str.startswith("2024")
+                df["datePublicationDonnees"].dt.year == 2024
             ].index.size,
             "2023_nb_notifications": df.loc[
-                df["dateNotification"].str.startswith("2023")
+                df["dateNotification"].dt.year == 2023
             ].index.size,
             "2023_nb_publications": df.loc[
-                df["datePublicationDonnees"].str.startswith("2023")
+                df["datePublicationDonnees"].dt.year == 2023
             ].index.size,
             "nb_marches_format_arrete_2022": df.loc[df["ccag"] != ""].index.size,
         }
     ]
+    
+    # df_per_source = (
+    #     df[["id", "acheteur.id", "source"]].drop_duplicates().groupby(by="source").count()
+    # )
 
-    df_per_source = (
-        df[["id", "acheteur.id"]].drop_duplicates().groupby(by="source").count()
-    )
+    # for idx in df_per_source.index:
+    #     if idx == "":
+    #         source = "source-manquante"
+    #     else:
+    #         source = idx
 
-    for idx in df_per_source.index:
-        if idx == "":
-            source = "source-manquante"
-        else:
-            source = idx
-
-        stats[source] = df_per_source.loc[idx, "id"]
+    #     stats[source] = df_per_source.loc[idx, "id"]
 
     df_stats_dgfr: pd.DataFrame = get_stats()
     df_stats_dgfr = pd.concat([df_stats_dgfr, pd.DataFrame(stats)], ignore_index=True)
