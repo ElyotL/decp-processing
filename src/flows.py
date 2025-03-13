@@ -22,7 +22,7 @@ def decp_processing():
     logger = get_run_logger()
 
     # Timestamp
-    date_now = datetime.now().isoformat()
+    date_now = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
     # git pull
     print("Récupération du code (pull)...")
@@ -30,7 +30,7 @@ def decp_processing():
     subprocess.run(command.split(" "))
 
     print("Récupération des données source...")
-    df: pd.DataFrame = get_official_decp(date_now)
+    df: pd.DataFrame = get_decp_csv(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
     print("Création du dossier dist/")
@@ -133,14 +133,20 @@ def decp_processing():
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
 
+    # quand ce sera stable !
+
 
 if __name__ == "__main__":
-    decp_processing.serve(
-        name="decp-processing-cron",
-        cron="0 6 * * 1-5",
-        description="Téléchargement, traitement, et publication des DECP.",
-    )
-    decp_processing.serve(
-        name="decp-processing-once",
-        description="Téléchargement, traitement, et publication des DECP.",
-    )
+    decp_processing()
+
+    # On verra les deployments quand la base marchera
+    #
+    # decp_processing.serve(
+    #     name="decp-processing-cron",
+    #     cron="0 6 * * 1-5",
+    #     description="Téléchargement, traitement, et publication des DECP.",
+    # )
+    # decp_processing.serve(
+    #     name="decp-processing-once",
+    #     description="Téléchargement, traitement, et publication des DECP.",
+    # )
