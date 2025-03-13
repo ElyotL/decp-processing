@@ -20,7 +20,6 @@ def generate_stats(df: pd.DataFrame):
 
     df.to_pickle("data/decp_before_stats.pkl")
 
-
     stats = [
         {
             "datetime": now.isoformat()[:-7],  # jusqu'aux secondes
@@ -49,7 +48,7 @@ def generate_stats(df: pd.DataFrame):
             "nb_marches_format_arrete_2022": df.loc[df["ccag"] != ""].index.size,
         }
     ]
-    
+
     # df_per_source = (
     #     df[["id", "acheteur.id", "source"]].drop_duplicates().groupby(by="source").count()
     # )

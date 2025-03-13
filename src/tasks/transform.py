@@ -173,7 +173,7 @@ def identify_current_data(df: pd.DataFrame, decp_json_test=None):
     df = df.copy()[["acheteur.id", "id"]].sort_values(by=["acheteur.id", "id"])
     df = df.drop_duplicates()
 
-    if type(decp_json_test) ==  pd.DataFrame:
+    if type(decp_json_test) == pd.DataFrame:
         decp_json = decp_json_test
     else:
         decp_json = get_decp_json()
