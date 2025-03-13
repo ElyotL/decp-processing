@@ -10,3 +10,5 @@ logs
 __pycache__
 .pytest_cache
 build
+.vscode
+todo.md
