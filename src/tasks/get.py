@@ -33,6 +33,19 @@ def get_decp_csv(date_now: str):
         index_col=None,
     )
 
+    # Suppression des colonnes abandonnées dans le format 2022
+    df = df.drop(
+        columns=[
+            "acheteur.nom",
+            "lieuExecution.nom",
+            "updated_at",
+            "titulaire_denominationSociale_1",
+            "titulaire_denominationSociale_2",
+            "titulaire_denominationSociale_3",
+            "booleanModification",
+        ]
+    )
+
     return df
 
 
