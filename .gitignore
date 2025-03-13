@@ -1,8 +1,7 @@
 dist
 logs
-*.env
 *.csv
-!decp_augmente_valides_test.csv
+!decp_augmente_valides_*_test.csv
 .venv
 *.egg-info
 *.parquet

@@ -33,6 +33,7 @@ testpaths = [
     "tests",
 ]
 env = [
-    "DECP_ENRICHIES_VALIDES_URL=data/decp_augmente_valides_test.csv"
+    "DECP_ENRICHIES_VALIDES_2019_URL=data/decp_augmente_valides_2019_test.csv",
+    "DECP_ENRICHIES_VALIDES_2022_URL=data/decp_augmente_valides_2022_test.csv"
 ]
 addopts = "-p no:warnings"
