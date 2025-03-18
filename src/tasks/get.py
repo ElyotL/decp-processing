@@ -38,11 +38,17 @@ def get_decp_csv(date_now: str):
         columns=[
             "acheteur.nom",
             "lieuExecution.nom",
+            "created_at",
             "updated_at",
             "titulaire_denominationSociale_1",
             "titulaire_denominationSociale_2",
             "titulaire_denominationSociale_3",
             "booleanModification",
+            # Supprimés pour l'instant
+            "actesSousTraitance",
+            "titulairesModification",
+            "modificationsActesSousTraitance",
+            "objetModification",
         ]
     )
 
