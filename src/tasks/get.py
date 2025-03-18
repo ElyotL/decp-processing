@@ -46,6 +46,11 @@ def get_decp_csv(date_now: str):
         ]
     )
 
+    # Ajout de l'ID unique de marché (uid)
+
+    df["uid"] = df["acheteur.id"] + df["id"]
+    df = df.drop(columns=["actesSousTraitance"])
+
     return df
 
 
