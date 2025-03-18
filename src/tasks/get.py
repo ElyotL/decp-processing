@@ -5,22 +5,20 @@ from prefect import task
 from pathlib import Path
 
 
-@task
-def get_decp_csv(date_now: str):
+def get_decp_csv(date_now: str, format: str):
     """Téléchargement des DECP publiées par Bercy sur data.economie.gouv.fr."""
-    if os.getenv("DECP_ENRICHIES_VALIDES_2019_URL").startswith("https"):
+    csv_url = os.getenv(f"DECP_ENRICHIES_VALIDES_{format}_URL")
+    if csv_url.startswith("https"):
         # Prod file
         decp_augmente_valides_file: Path = Path(
-            f"data/decp_augmente_valides_{date_now}.csv"
+            f"data/decp_augmente_valides_{format}_{date_now}.csv"
         )
     else:
         # Test file, pas de téléchargement
-        decp_augmente_valides_file: Path = Path(
-            os.getenv("DECP_ENRICHIES_VALIDES_2019_URL")
-        )
+        decp_augmente_valides_file: Path = Path(csv_url)
 
     if not (os.path.exists(decp_augmente_valides_file)):
-        request = get(os.getenv("DECP_ENRICHIES_VALIDES_2019_URL"))
+        request = get(csv_url)
         with open(decp_augmente_valides_file, "wb") as file:
             file.write(request.content)
     else:
@@ -32,9 +30,19 @@ def get_decp_csv(date_now: str):
         dtype=str,
         index_col=None,
     )
+    return df
+
+
+@task
+def get_and_merge_decp_csv(date_now: str):
+    # Pourrait être parallelisé
+    df_2019: pd.DataFrame = get_decp_csv(date_now, "2019")
+    df_2019["source_open_data"] = "data.economie valides 2019"
+    df_2022: pd.DataFrame = get_decp_csv(date_now, "2022")
+    df_2022["source_open_data"] = "data.economie valides 2022"
 
     # Suppression des colonnes abandonnées dans le format 2022
-    df = df.drop(
+    df_2019 = df_2019.drop(
         columns=[
             "acheteur.nom",
             "lieuExecution.nom",
@@ -44,7 +52,7 @@ def get_decp_csv(date_now: str):
             "titulaire_denominationSociale_2",
             "titulaire_denominationSociale_3",
             "booleanModification",
-            # Supprimés pour l'instant
+            # Supprimés pour l'instant, possiblement réintégrées plus tard
             "actesSousTraitance",
             "titulairesModification",
             "modificationsActesSousTraitance",
@@ -52,10 +60,19 @@ def get_decp_csv(date_now: str):
         ]
     )
 
-    # Ajout de l'ID unique de marché (uid)
+    # Renommage des colonnes qui ont changé de nom avec le format 2022
+    df_2019.rename(
+        columns={
+            "technique": "techniques",
+            "modaliteExecution": "modalitesExecution",
+        }
+    )
 
+    # Concaténation des données format 2019 et 2022
+    df = pd.concat([df_2019, df_2022], ignore_index=True)
+
+    # Ajout de l'ID unique de marché (uid)
     df["uid"] = df["acheteur.id"] + df["id"]
-    df = df.drop(columns=["actesSousTraitance"])
 
     return df
 

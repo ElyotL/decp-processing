@@ -30,7 +30,7 @@ def decp_processing():
     subprocess.run(command.split(" "))
 
     print("Récupération des données source...")
-    df: pd.DataFrame = get_decp_csv(date_now)
+    df: pd.DataFrame = get_and_merge_decp_csv(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
     print("Création du dossier dist/")
