@@ -4,6 +4,8 @@ import os
 from prefect import task
 from pathlib import Path
 
+from src.tasks.output import save_to_sqlite
+
 
 def get_decp_csv(date_now: str, format: str):
     """Téléchargement des DECP publiées par Bercy sur data.economie.gouv.fr."""
@@ -37,8 +39,14 @@ def get_decp_csv(date_now: str, format: str):
 def get_and_merge_decp_csv(date_now: str):
     # Pourrait être parallelisé
     df_2019: pd.DataFrame = get_decp_csv(date_now, "2019")
+    df_2019 = df_2019.drop(
+        columns=["TypePrix"]
+    )  # SQlite le voit comme un doublon de typePrix, et les données semblent les mêmes
+    save_to_sqlite(df_2019, "datalab", "data.economie.2019.ori")
     df_2019["source_open_data"] = "data.economie valides 2019"
+
     df_2022: pd.DataFrame = get_decp_csv(date_now, "2022")
+    save_to_sqlite(df_2022, "datalab", "data.economie.2022.ori")
     df_2022["source_open_data"] = "data.economie valides 2022"
 
     # Suppression des colonnes abandonnées dans le format 2022
@@ -70,9 +78,7 @@ def get_and_merge_decp_csv(date_now: str):
 
     # Concaténation des données format 2019 et 2022
     df = pd.concat([df_2019, df_2022], ignore_index=True)
-
-    # Ajout de l'ID unique de marché (uid)
-    df["uid"] = df["acheteur.id"] + df["id"]
+    save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
     return df
 

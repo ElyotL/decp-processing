@@ -1,10 +1,16 @@
 import pandas as pd
 import os
+from sqlalchemy import create_engine
 
 
 def save_to_files(df: pd.DataFrame, path: str):
     df.to_csv(f"{path}.csv", index=None)
     df.to_parquet(f"{path}.parquet", index=None)
+
+
+def save_to_sqlite(df: pd.DataFrame, database: str, table_name: str):
+    conn = create_engine(f"sqlite:///dist/{database}.sqlite", echo=False)
+    df.to_sql(table_name, con=conn, if_exists="replace")
 
 
 def make_data_package():

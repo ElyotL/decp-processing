@@ -29,15 +29,15 @@ def decp_processing():
     command = "git pull origin prefect"
     subprocess.run(command.split(" "))
 
-    print("Récupération des données source...")
-    df: pd.DataFrame = get_and_merge_decp_csv(date_now)
-    logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
-
     print("Création du dossier dist/")
     if os.path.exists("dist"):
         print("dist exists")
     else:
         os.mkdir("dist")
+
+    print("Récupération des données source...")
+    df: pd.DataFrame = get_and_merge_decp_csv(date_now)
+    logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
 
     print("Nettoyage des données source...")
     df = clean_official_decp(df)
@@ -118,18 +118,18 @@ def decp_processing():
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
 
-    if not (os.curdir.endswith("dist")):
-        os.chdir("./dist")
-        print(os.curdir)
-
-    print("Validation des données DECP avec le TableSchema...")
-    validate_decp_against_tableschema()
-
-    print("Création du data package (JSON)....")
-    make_data_package()
-
-    print("Création de la DB SQLite et des métadonnées datasette...")
-    make_sqllite_and_datasette_metadata()
+    # if not (os.curdir.endswith("dist")):
+    #     os.chdir("./dist")
+    #     print(os.curdir)
+    #
+    # print("Validation des données DECP avec le TableSchema...")
+    # validate_decp_against_tableschema()
+    #
+    # print("Création du data package (JSON)....")
+    # make_data_package()
+    #
+    # print("Création de la DB SQLite et des métadonnées datasette...")
+    # make_sqllite_and_datasette_metadata()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
 
