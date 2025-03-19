@@ -8,7 +8,6 @@ def explode_titulaires(df: pd.DataFrame):
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
 
     df["titulaire.id"] = [[] for r in range(len(df))]
-    df["titulaire.denominationSociale"] = [[] for r in range(len(df))]
     df["titulaire.typeIdentifiant"] = [[] for r in range(len(df))]
 
     for num in range(1, 4):
@@ -16,15 +15,12 @@ def explode_titulaires(df: pd.DataFrame):
         df.loc[mask, "titulaire.id"] += df.loc[mask, f"titulaire_id_{num}"].apply(
             lambda x: [x]
         )
-        df.loc[mask, "titulaire.denominationSociale"] += df.loc[
-            mask, f"titulaire_denominationSociale_{num}"
-        ].apply(lambda x: [x])
         df.loc[mask, "titulaire.typeIdentifiant"] += df.loc[
             mask, f"titulaire_typeIdentifiant_{num}"
         ].apply(lambda x: [x])
 
     df = df.explode(
-        ["titulaire.id", "titulaire.denominationSociale", "titulaire.typeIdentifiant"],
+        ["titulaire.id", "titulaire.typeIdentifiant"],
         ignore_index=True,
     )
 
@@ -51,7 +47,6 @@ def make_decp_sans_titulaires(df: pd.DataFrame):
     df_decp_sans_titulaires = df.drop(
         columns=[
             "titulaire.id",
-            "titulaire.denominationSociale",
             "titulaire.typeIdentifiant",
         ]
     )
