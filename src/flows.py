@@ -51,8 +51,8 @@ def decp_processing():
     print("Explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
 
-    print("Ajout des colonnes manquantes...")
-    df = setup_tableschema_columns(df)
+    # print("Ajout des colonnes manquantes...")
+    # df = setup_tableschema_columns(df)
 
     # Quand https://github.com/ColinMaudry/decp-processing/issues/17 sera résolu
     # à supprimer

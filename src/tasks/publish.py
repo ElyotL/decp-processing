@@ -1,7 +1,6 @@
 from requests import post
 import json
 from os import getenv
-import pandas as pd
 
 from src.tasks.get import get_stats
 
