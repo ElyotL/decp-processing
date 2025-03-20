@@ -1,7 +1,7 @@
 from prefect import flow, get_run_logger
+from prefect.task_runners import ThreadPoolTaskRunner
 import datetime
 from dotenv import load_dotenv
-import os
 import subprocess
 
 

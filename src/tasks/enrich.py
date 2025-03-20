@@ -5,7 +5,7 @@ from os import getenv
 def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
     etablissement_df_chunked = pd.read_csv(
         getenv("SIRENE_ETABLISSEMENTS_PATH"),
-        chunksize=(1000000),
+        chunksize=1000000,
         dtype="object",
         index_col=None,
         usecols=[
