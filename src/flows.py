@@ -39,6 +39,9 @@ def decp_processing():
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
     save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
+    print("Ajout du champ uid")
+    df["uid"] = df["acheteur.id"] + df["id"]
+
     print("Nettoyage des données source...")
     df = clean_official_decp(df)
 
@@ -48,7 +51,7 @@ def decp_processing():
     print("Analyse des données source...")
     generate_stats(df)
 
-    print("Explosion des titulaires, un par ligne...")
+    print("Concaténation et explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
 
     # print("Ajout des colonnes manquantes...")

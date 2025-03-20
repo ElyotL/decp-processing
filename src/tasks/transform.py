@@ -30,7 +30,6 @@ def explode_titulaires(df: pd.DataFrame):
 def setup_tableschema_columns(df: pd.DataFrame):
     # Ajout colonnes manquantes
 
-    df["uid"] = df["acheteur.id"] + df["id"]
     df["donneesActuelles"] = ""  # TODO
     df["anomalies"] = ""  # TODO
 
