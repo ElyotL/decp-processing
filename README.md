@@ -24,7 +24,14 @@ Vous pouvez...
 - les télécharger sur [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire/) (vous trouverez aussi plus d'informations sur ces données)
 - les visualiséer, les filtrer et télécharger sur [decp.info](https://decp.info)
 
-## Utilisation
+
+## Pré-requis
+
+- Python 3.8 ou plus récent
+- cargo ([installation rapide](https://rustup.rs))
+- fichier .env avec l'adresse des fichiers source
+
+## Installation
 
 Je vous recommande d'utiliser un environnement virtuel Python pour isoler l'installation des dépendances :
 
@@ -44,15 +51,20 @@ Installez les dépendances :
 pip install .
 ```
 
-Lancez Jupyter notebook (je n'ai pas trop testé, j'utilise l'intégration dans VS Code) :
+Installez les dépendances de développement :
 
 ```bash
-jupyter notebook
+pip install .[dev]
+
+# sous zsh
+
+pip install .'[dev]'
 ```
 
-Ordre d'exécution et description des notebooks :
+## Test
 
-1. marchés : pour récupérer les données de base et les nettoyer
-2. sirene_acheteurs : pour récupérer les noms des acheteurs depuis la base SIRENE
-3. sirene_titulaires : pour récupérer les données des titulaires depuis la base SIRENE
-4. publish : création du datapackage, de la base de données SQLite, et publication sur data.gouv.fr
+Pour lancer les tests unitaires :
+
+```
+pytest
+```
