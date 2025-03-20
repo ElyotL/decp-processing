@@ -48,12 +48,6 @@ def get_decp_csv(date_now: str, year: str):
 
 
 @task
-def decp_concat(dfs):
-    for df in dfs:
-        print(df.index.size)
-
-
-@task
 def get_and_merge_decp_csv(date_now: str):
     df_get = []
     formats = []
@@ -95,7 +89,6 @@ def get_and_merge_decp_csv(date_now: str):
 
     # Concaténation des données format 2019 et 2022
     df = pd.concat([dfs["2019"], dfs["2022"]], ignore_index=True)
-    save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
     return df
 

@@ -1,17 +1,16 @@
 from prefect import flow, get_run_logger
-from prefect.task_runners import ThreadPoolTaskRunner
 import datetime
 from dotenv import load_dotenv
 import subprocess
 
-
 from tasks.get import *
 from tasks.clean import *
 from tasks.transform import *
-from tasks.enrich import *
 from tasks.output import *
-from tasks.test import *
 from tasks.analyse import *
+
+# from tasks.test import *
+# from tasks.enrich import *
 
 
 @flow(log_prints=True)
@@ -38,6 +37,7 @@ def decp_processing():
     print("Récupération des données source...")
     df: pd.DataFrame = get_and_merge_decp_csv(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
+    save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
     print("Nettoyage des données source...")
     df = clean_official_decp(df)

@@ -1,19 +1,16 @@
 import pandas as pd
-from numpy import nan as NaN
+from numpy import nan
 
 
 def clean_official_decp(df: pd.DataFrame):
-    df.replace([NaN, None], "", inplace=True, regex=False)
+    df.replace([nan, None], "", inplace=True, regex=False)
 
     # Suppression des lignes en doublon
     # Exemple : 20005584600014157140791205100
-
     df = df.drop_duplicates(ignore_index=True)
 
     # Dates
-
     columns_date = ["datePublicationDonnees", "dateNotification"]
-
     date_replacements = {
         # ID marché invalide et SIRET de l'acheteur
         "0002-11-30": "",
@@ -27,27 +24,22 @@ def clean_official_decp(df: pd.DataFrame):
         "2921-11-19": "",  # 20220057201 20005226400013
         "0022-04-29": "2022-04-29",  # 2022AOO-GASL0100 25640454200035
     }
-
     for col in columns_date:
-        df[col] = df[col].replace(date_replacements, regex=False)
+        df[col].replace(date_replacements, regex=False, inplace=True)
 
     # Nombres
-
-    df["dureeMois"] = df["dureeMois"].replace("", NaN)
-    df["montant"] = df["montant"].replace("", NaN)
+    df["dureeMois"].replace("", nan, inplace=True)
+    df["montant"].replace("", nan, inplace=True)
 
     # Identifiants de marchés
-
     id_replacements = {"[,\./]": "_"}
-
-    df["id"] = df["id"].replace(id_replacements, regex=True)
+    for col in ["id", "uid"]:
+        df[col].replace(id_replacements, regex=True, inplace=True)
 
     # Nature
-
     nature_replacements = {"Marche": "Marché", "subsequent": "subséquent"}
-
     df["nature"] = df["nature"].str.capitalize()
-    df["nature"] = df["nature"].replace(nature_replacements, regex=True)
+    df["nature"].replace(nature_replacements, regex=True, inplace=True)
 
     return df
 
