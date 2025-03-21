@@ -1,8 +1,8 @@
-import pandas as pd
+import polars as pl
 from tasks.get import get_decp_json
 
 
-def explode_titulaires(df: pd.DataFrame):
+def explode_titulaires(df: pl.DataFrame):
     # VERS LE FORMAT DECP-TABLE-SCHEMA #
 
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
@@ -27,13 +27,13 @@ def explode_titulaires(df: pd.DataFrame):
     return df
 
 
-def setup_tableschema_columns(df: pd.DataFrame):
+def setup_tableschema_columns(df: pl.DataFrame):
     # Ajout colonnes manquantes
 
     df["donneesActuelles"] = ""  # TODO
     df["anomalies"] = ""  # TODO
 
-    df_example_tableschema = pd.read_csv(
+    df_example_tableschema = pl.read_csv(
         "https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/main/exemples/exemple-valide.csv",
         nrows=1,
     )
@@ -42,7 +42,7 @@ def setup_tableschema_columns(df: pd.DataFrame):
     return df
 
 
-def make_decp_sans_titulaires(df: pd.DataFrame):
+def make_decp_sans_titulaires(df: pl.DataFrame):
     df_decp_sans_titulaires = df.drop(
         columns=[
             "titulaire.id",
@@ -53,7 +53,7 @@ def make_decp_sans_titulaires(df: pd.DataFrame):
     return df_decp_sans_titulaires
 
 
-def extract_unique_acheteurs_siret(df: pd.DataFrame):
+def extract_unique_acheteurs_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
     decp_acheteurs_df = df[["acheteur.id"]]
     decp_acheteurs_df = decp_acheteurs_df.drop_duplicates().loc[
@@ -64,7 +64,7 @@ def extract_unique_acheteurs_siret(df: pd.DataFrame):
     return decp_acheteurs_df
 
 
-def extract_unique_titulaires_siret(df: pd.DataFrame):
+def extract_unique_titulaires_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
     df_sirets_titulaires = df[["titulaire.id", "titulaire.typeIdentifiant"]]
 
@@ -77,7 +77,7 @@ def extract_unique_titulaires_siret(df: pd.DataFrame):
     return df_sirets_titulaires
 
 
-def make_acheteur_nom(decp_acheteurs_df: pd.DataFrame):
+def make_acheteur_nom(decp_acheteurs_df: pl.DataFrame):
     # Construction du champ acheteur.nom
 
     from numpy import nan as NaN
@@ -95,7 +95,7 @@ def make_acheteur_nom(decp_acheteurs_df: pd.DataFrame):
     return decp_acheteurs_df
 
 
-def improve_titulaire_unite_legale_data(df_sirets_titulaires: pd.DataFrame):
+def improve_titulaire_unite_legale_data(df_sirets_titulaires: pl.DataFrame):
     # Raccourcissement du code commune
     df_sirets_titulaires["departement"] = df_sirets_titulaires[
         "codeCommuneEtablissement"
@@ -121,15 +121,15 @@ def improve_titulaire_unite_legale_data(df_sirets_titulaires: pd.DataFrame):
     return df_sirets_titulaires
 
 
-def improve_categories_juridiques(df_sirets_titulaires: pd.DataFrame):
+def improve_categories_juridiques(df_sirets_titulaires: pl.DataFrame):
     # Récupération et raccourcissement des categories juridiques du fichier SIREN
     df_sirets_titulaires["categorieJuridiqueUniteLegale"] = (
         df_sirets_titulaires["categorieJuridiqueUniteLegale"].astype(str).str[:2]
     )
 
     # Récupération des libellés des catégories juridiques
-    cj_df = pd.read_csv("data/cj.csv", index_col=None, dtype="object")
-    df_sirets_titulaires = pd.merge(
+    cj_df = pl.read_csv("data/cj.csv", index_col=None, dtype="object")
+    df_sirets_titulaires = pl.merge(
         df_sirets_titulaires,
         cj_df,
         how="left",
@@ -143,7 +143,7 @@ def improve_categories_juridiques(df_sirets_titulaires: pd.DataFrame):
     return df_sirets_titulaires
 
 
-def rename_titulaire_sirene_columns(df_sirets_titulaires: pd.DataFrame):
+def rename_titulaire_sirene_columns(df_sirets_titulaires: pl.DataFrame):
     # Renommage des colonnes
 
     renaming = {
@@ -157,7 +157,7 @@ def rename_titulaire_sirene_columns(df_sirets_titulaires: pd.DataFrame):
     return df_sirets_titulaires
 
 
-def identify_current_data(df: pd.DataFrame, decp_json_test=None):
+def identify_current_data(df: pl.DataFrame, decp_json_test=None):
     """Récupérer depuis les données originales en JSON le nombre de modifications
     de chaque marché. En le comparant aux deux derniers chiffres de l'id de marché
     (qui est censé être le nombre de modifications), on peut isoler l'identifiant
@@ -167,7 +167,7 @@ def identify_current_data(df: pd.DataFrame, decp_json_test=None):
     df = df.copy()[["acheteur.id", "id"]].sort_values(by=["acheteur.id", "id"])
     df = df.drop_duplicates()
 
-    if type(decp_json_test) == pd.DataFrame:
+    if type(decp_json_test) == pl.DataFrame:
         decp_json = decp_json_test
     else:
         decp_json = get_decp_json()

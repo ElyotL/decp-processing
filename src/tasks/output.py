@@ -3,7 +3,7 @@ import os
 from sqlalchemy import create_engine
 
 
-def save_to_files(df: pd.DataFrame, path: str):
+def save_to_files(df: pl.DataFrame, path: str):
     df.to_csv(f"{path}.csv", index=None)
     df.to_parquet(f"{path}.parquet", index=None)
 

@@ -1,12 +1,12 @@
-import pandas as pd
+import polars as pl
 from tasks.get import get_stats
 from datetime import datetime
 
 
-def generate_stats(df: pd.DataFrame):
+def generate_stats(df: pl.DataFrame):
     now = datetime.now()
 
-    df_titulaires = pd.DataFrame(columns=["titulaire.id", "titulaire.typeIdentifiant"])
+    df_titulaires = pl.DataFrame(columns=["titulaire.id", "titulaire.typeIdentifiant"])
 
     for i in range(1, 4):
         df_temp = df[[f"titulaire_id_{i}", f"titulaire_typeIdentifiant_{i}"]]
@@ -16,7 +16,7 @@ def generate_stats(df: pd.DataFrame):
                 f"titulaire_typeIdentifiant_{i}": "titulaire.typeIdentifiant",
             }
         )
-        df_titulaires = pd.concat([df_titulaires, df_temp], ignore_index=True)
+        df_titulaires = pl.concat([df_titulaires, df_temp], ignore_index=True)
 
     df.to_pickle("data/decp_before_stats.pkl")
 
@@ -61,6 +61,6 @@ def generate_stats(df: pd.DataFrame):
 
     #     stats[source] = df_per_source.loc[idx, "id"]
 
-    df_stats_dgfr: pd.DataFrame = get_stats()
-    df_stats_dgfr = pd.concat([df_stats_dgfr, pd.DataFrame(stats)], ignore_index=True)
+    df_stats_dgfr: pl.DataFrame = get_stats()
+    df_stats_dgfr = pl.concat([df_stats_dgfr, pl.DataFrame(stats)], ignore_index=True)
     df_stats_dgfr.to_csv("dist/statistiques.csv")

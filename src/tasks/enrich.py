@@ -1,9 +1,9 @@
-import pandas as pd
+import polars as pl
 from os import getenv
 
 
-def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
-    etablissement_df_chunked = pd.read_csv(
+def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pl.DataFrame):
+    etablissement_df_chunked = pl.read_csv(
         getenv("SIRENE_ETABLISSEMENTS_PATH"),
         chunksize=1000000,
         dtype="object",
@@ -20,7 +20,7 @@ def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
 
     with etablissement_df_chunked as reader:
         for df_chunk in reader:
-            merge = pd.merge(
+            merge = pl.merge(
                 df_siret_acheteurs,
                 df_chunk,
                 how="inner",
@@ -30,15 +30,15 @@ def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pd.DataFrame):
             if merge.index.size > 0:
                 merged_chunks_list.append(merge)
 
-    decp_acheteurs_df = pd.concat(merged_chunks_list).drop(columns=["siret"])
+    decp_acheteurs_df = pl.concat(merged_chunks_list).drop(columns=["siret"])
 
     del etablissement_df_chunked, df_chunk
 
     return decp_acheteurs_df
 
 
-def add_unite_legale_data_to_acheteurs(decp_acheteurs_df: pd.DataFrame):
-    unite_legale_df_chunked = pd.read_csv(
+def add_unite_legale_data_to_acheteurs(decp_acheteurs_df: pl.DataFrame):
+    unite_legale_df_chunked = pl.read_csv(
         getenv("SIRENE_UNITES_LEGALES_PATH"),
         index_col=None,
         dtype="object",
@@ -55,19 +55,19 @@ def add_unite_legale_data_to_acheteurs(decp_acheteurs_df: pd.DataFrame):
 
     with unite_legale_df_chunked as reader:
         for df_chunk in reader:
-            merge = pd.merge(decp_acheteurs_df, df_chunk, how="inner", on="siren")
+            merge = pl.merge(decp_acheteurs_df, df_chunk, how="inner", on="siren")
             if not merge.empty and merge.notnull().any().any() and len(merge) >= 1:
                 merged_chunks_list.append(merge)
     del unite_legale_df_chunked, df_chunk
 
-    decp_acheteurs_df = pd.concat(merged_chunks_list)
+    decp_acheteurs_df = pl.concat(merged_chunks_list)
 
     del merged_chunks_list
 
     return decp_acheteurs_df
 
 
-def add_etablissement_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
+def add_etablissement_data_to_titulaires(df_sirets_titulaires: pl.DataFrame):
     # Récupération des données SIRET titulaires
     dtypes_etablissements = {
         "siret": "object",
@@ -78,7 +78,7 @@ def add_etablissement_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
         "codeCommuneEtablissement": "object",
         "etatAdministratifEtablissement": "category",
     }
-    etablissement_df_chunked = pd.read_csv(
+    etablissement_df_chunked = pl.read_csv(
         getenv("SIRENE_ETABLISSEMENTS_PATH"),
         chunksize=(500000),
         dtype=dtypes_etablissements,
@@ -104,7 +104,7 @@ def add_etablissement_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
 
     with etablissement_df_chunked as reader:
         for df_chunk in reader:
-            merge = pd.merge(
+            merge = pl.merge(
                 df_sirets_titulaires,
                 df_chunk,
                 how="inner",
@@ -114,14 +114,14 @@ def add_etablissement_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
             if merge.index.size > 0:
                 merged_chunks_list.append(merge)
 
-    df_sirets_titulaires = pd.concat(merged_chunks_list).drop(columns=["siret"])
+    df_sirets_titulaires = pl.concat(merged_chunks_list).drop(columns=["siret"])
 
     del etablissement_df_chunked, df_chunk
 
     return df_sirets_titulaires
 
 
-def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
+def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pl.DataFrame):
     dtypes_uniteLegales = {
         "siren": "object",
         "categorieEntreprise": "object",  # doit être object, car il y a des NaN
@@ -130,7 +130,7 @@ def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
         "categorieJuridiqueUniteLegale": "object",  # object plutôt que catégorie pour faire des modifications plus tard
     }
 
-    unite_legale_df_chunked = pd.read_csv(
+    unite_legale_df_chunked = pl.read_csv(
         getenv("SIRENE_UNITES_LEGALES_PATH"),
         index_col=None,
         dtype=dtypes_uniteLegales,
@@ -149,23 +149,23 @@ def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pd.DataFrame):
 
     with unite_legale_df_chunked as reader:
         for df_chunk in reader:
-            merge = pd.merge(df_sirets_titulaires, df_chunk, how="inner", on="siren")
+            merge = pl.merge(df_sirets_titulaires, df_chunk, how="inner", on="siren")
             if not merge.empty and merge.notnull().any().any() and len(merge) >= 1:
                 merged_chunks_list.append(merge)
     del unite_legale_df_chunked, df_chunk
 
-    df_sirets_titulaires = pd.concat(merged_chunks_list)
+    df_sirets_titulaires = pl.concat(merged_chunks_list)
 
     del merged_chunks_list
 
     return df_sirets_titulaires
 
 
-def merge_sirets_acheteurs(decp_df: pd.DataFrame, df_sirets_acheteurs: pd.DataFrame):
+def merge_sirets_acheteurs(decp_df: pl.DataFrame, df_sirets_acheteurs: pl.DataFrame):
     final_columns = ["acheteur.id", "acheteur.nom"]
 
     decp_df = decp_df.drop(columns=["acheteur.nom"])
-    decp_df = pd.merge(
+    decp_df = pl.merge(
         decp_df,
         df_sirets_acheteurs[final_columns],
         on="acheteur.id",
@@ -177,7 +177,7 @@ def merge_sirets_acheteurs(decp_df: pd.DataFrame, df_sirets_acheteurs: pd.DataFr
     return decp_df
 
 
-def merge_sirets_titulaires(decp_df: pd.DataFrame, df_sirets_titulaires: pd.DataFrame):
+def merge_sirets_titulaires(decp_df: pl.DataFrame, df_sirets_titulaires: pl.DataFrame):
     final_columns = [
         "id",
         "uid",
@@ -209,7 +209,7 @@ def merge_sirets_titulaires(decp_df: pd.DataFrame, df_sirets_titulaires: pd.Data
         "anomalies",
     ]
 
-    df_decp_titulaires = pd.merge(
+    df_decp_titulaires = pl.merge(
         decp_df,
         df_sirets_titulaires,
         on=["titulaire.id", "titulaire.typeIdentifiant"],

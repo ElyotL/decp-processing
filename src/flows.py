@@ -35,7 +35,7 @@ def decp_processing():
         os.mkdir("dist")
 
     print("Récupération des données source...")
-    df: pd.DataFrame = get_and_merge_decp_csv(date_now)
+    df: pl.DataFrame = get_and_merge_decp_csv(date_now)
     logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
     save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
