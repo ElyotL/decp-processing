@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import os
 from sqlalchemy import create_engine
 
@@ -8,9 +8,9 @@ def save_to_files(df: pd.DataFrame, path: str):
     df.to_parquet(f"{path}.parquet", index=None)
 
 
-def save_to_sqlite(df: pd.DataFrame, database: str, table_name: str):
+def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str):
     conn = create_engine(f"sqlite:///dist/{database}.sqlite", echo=False)
-    df.to_sql(table_name, con=conn, if_exists="replace")
+    df.write_database(table_name, conn, if_table_exists="replace")
 
 
 def make_data_package():

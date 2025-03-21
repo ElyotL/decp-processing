@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 from httpx import get
 import os
 from prefect import task
@@ -29,16 +29,21 @@ def get_decp_csv(date_now: str, year: str):
     else:
         print(f"DECP d'aujourd'hui déjà téléchargées ({date_now})")
 
-    df: pd.DataFrame = pd.read_csv(
+    df: pl.DataFrame = pl.read_csv(
         decp_augmente_valides_file,
         sep=";",
-        dtype=str,
-        index_col=None,
+        schema_overrides={
+            "titulaire_id_1": str,
+            "titulaire_id_2": str,
+            "titulaire_id_3": str,
+            "acheteur.id": str,
+            "lieuExecution.code": str,
+        },
     )
 
     if year == "2019":
         df = df.drop(
-            columns=["TypePrix"]
+            "TypePrix"
         )  # SQlite le voit comme un doublon de typePrix, et les données semblent être les mêmes
 
     save_to_sqlite(df, "datalab", f"data.economie.{year}.ori")
@@ -50,7 +55,6 @@ def get_decp_csv(date_now: str, year: str):
 @task
 def get_and_merge_decp_csv(date_now: str):
     df_get = []
-    formats = []
     for year in ("2019", "2022"):
         df_get.append(get_decp_csv.submit(date_now, year))
 
@@ -61,7 +65,7 @@ def get_and_merge_decp_csv(date_now: str):
 
     # Suppression des colonnes abandonnées dans le format 2022
     dfs["2019"] = dfs["2019"].drop(
-        columns=[
+        [
             "created_at",
             "updated_at",
             "booleanModification",
@@ -80,15 +84,15 @@ def get_and_merge_decp_csv(date_now: str):
     )
 
     # Renommage des colonnes qui ont changé de nom avec le format 2022
-    dfs["2019"].rename(
-        columns={
+    dfs["2019"] = dfs["2019"].rename(
+        {
             "technique": "techniques",
             "modaliteExecution": "modalitesExecution",
         }
     )
 
     # Concaténation des données format 2019 et 2022
-    df = pd.concat([dfs["2019"], dfs["2022"]], ignore_index=True)
+    df = pl.concat([dfs["2019"], dfs["2022"]], how="vertical")
 
     return df
 

@@ -1,25 +1,24 @@
-import pandas as pd
+import polars as pl
 from numpy import nan
 
 
-def clean_official_decp(df: pd.DataFrame):
-    df = df.replace([nan, None], "", regex=False)
+def clean_official_decp(df: pl.DataFrame):
+    df = df.with_columns(pl.col(pl.String).str.replace_many([nan, None], ""))
 
     # Nettoyage des identifiants de marchés
-    df["id"] = df["id"].replace({"[,\\./]": "_"}, regex=True)
+    df = df.with_columns(pl.col("id").str.replace_all(r"[,\\./]", "_"))
 
     # Ajout du champ uid
     # TODO: à déplacer autre part, dans transform
-    df["uid"] = df["acheteur.id"] + df["id"]
+    df = df.with_columns((pl.col("acheteur.id") + pl.col("id")).alias("uid"))
 
     # Suppression des lignes en doublon par UID (acheteur id + id)
     # Exemple : 20005584600014157140791205100
-    index_size_before = df.index.size
-    df = df.drop_duplicates(subset="uid", ignore_index=True)
-    print("-- ", index_size_before - df.index.size, " doublons supprimés (uid)")
+    index_size_before = df.height
+    df = df.unique(subset=["uid"], maintain_order=False)
+    print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
 
     # Dates
-    columns_date = ["datePublicationDonnees", "dateNotification"]
     date_replacements = {
         # ID marché invalide et SIRET de l'acheteur
         "0002-11-30": "",
@@ -33,17 +32,25 @@ def clean_official_decp(df: pd.DataFrame):
         "2921-11-19": "",  # 20220057201 20005226400013
         "0022-04-29": "2022-04-29",  # 2022AOO-GASL0100 25640454200035
     }
-    for col in columns_date:
-        df[col] = df[col].replace(date_replacements, regex=False)
+
+    # Using replace_many for efficient replacement of multiple date values
+    df = df.with_columns(
+        pl.col(["datePublicationDonnees", "dateNotification"])
+        .str.replace_many(date_replacements)
+        .cast(pl.Utf8)
+    )
 
     # Nombres
-    df["dureeMois"] = df["dureeMois"].replace("", nan)
-    df["montant"] = df["montant"].replace("", nan)
+    df = df.with_columns(
+        pl.col(["dureeMois", "montant"]).replace("", None).cast(pl.Float64)
+    )
 
     # Nature
-    nature_replacements = {"Marche": "Marché", "subsequent": "subséquent"}
-    df["nature"] = df["nature"].str.capitalize()
-    df["nature"] = df["nature"].replace(nature_replacements, regex=True)
+    df = df.with_columns(
+        pl.col("nature").str.replace_many(
+            {"Marche": "Marché", "subsequent": "subséquent"}
+        )
+    )
 
     return df
 
