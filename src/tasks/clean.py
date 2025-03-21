@@ -55,20 +55,20 @@ def clean_official_decp(df: pl.DataFrame):
     return df
 
 
-def fix_data_types(df: pd.DataFrame):
-    # ***  TYPES DE DONNÉES ***#
-
+def fix_data_types(df: pl.DataFrame):
     numeric_dtypes = {
-        "dureeMois": "Int64",  # contrairement à int64, Int64 autorise les valeurs nulles https://pandas.pydata.org/docs/user_guide/integer_na.html
-        "montant": "float64",
+        "dureeMois": pl.Int64,  # Polars uses pl.Int64 for nullable integers
+        "montant": pl.Float64,
     }
 
-    for column in numeric_dtypes:
-        df[column] = df[column].astype(numeric_dtypes[column])
+    for column, dtype in numeric_dtypes.items():
+        df = df.with_columns(pl.col(column).cast(dtype))
 
-    date_dtypes = ["datePublicationDonnees", "dateNotification"]
-
-    for column in date_dtypes:
-        df[column] = pd.to_datetime(df[column], format="mixed", dayfirst=True)
+    # Convert date columns to datetime using str.strptime
+    df = df.with_columns(
+        pl.col(["datePublicationDonnees", "dateNotification"]).str.strptime(
+            pl.Date, format="%d-%m-%Y"
+        )
+    )
 
     return df
