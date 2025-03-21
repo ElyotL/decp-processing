@@ -59,8 +59,9 @@ def decp_processing():
 
     # Quand https://github.com/ColinMaudry/decp-processing/issues/17 sera résolu
     # à supprimer
-    print("Enregistrement des DECP aux formats CSV et Parquet...")
+    print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
+    save_to_sqlite(df, "datalab", "data.economie.2019.2022.clean")
 
     # DONNÉES SIRENE ACHETEURS
 
