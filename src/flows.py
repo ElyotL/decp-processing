@@ -1,5 +1,4 @@
-from prefect import flow, get_run_logger
-import datetime
+from prefect import flow
 from dotenv import load_dotenv
 import subprocess
 
@@ -8,39 +7,25 @@ from tasks.clean import *
 from tasks.transform import *
 from tasks.output import *
 from tasks.analyse import *
+from tasks.setup import *
 
 # from tasks.test import *
 # from tasks.enrich import *
+
+load_dotenv()
 
 CONNS = {}
 for db in ["datalab", "decp"]:
     CONNS[db] = create_engine(f"sqlite:///dist/{db}.sqlite", echo=False)
 
+DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
+
 
 @flow(log_prints=True)
-def decp_processing():
-    # TRAITEMENT MARCHÉS
-
-    load_dotenv()
-    logger = get_run_logger()
-
-    # Timestamp
-    date_now = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
-
-    # git pull
-    print("Récupération du code (pull)...")
-    command = "git pull origin prefect"
-    subprocess.run(command.split(" "))
-
-    print("Création du dossier dist/")
-    if os.path.exists("dist"):
-        print("dist exists")
-    else:
-        os.mkdir("dist")
-
+def get_merge_clean():
     print("Récupération des données source...")
-    df: pl.DataFrame = get_and_merge_decp_csv(date_now)
-    logger.info(f"DECP officielles: nombre de lignes: {df.height}")
+    df: pl.DataFrame = get_and_merge_decp_csv(DATE_NOW)
+    print(f"DECP officielles: nombre de lignes: {df.height}")
     save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
     print("Nettoyage des données source...")
@@ -49,23 +34,66 @@ def decp_processing():
     print("Typage des colonnes...")
     df = fix_data_types(df)
 
-    # À repenser:
+    return df
 
-    # print("Analyse des données source...")
-    # generate_stats(df)
+
+@flow(log_prints=True)
+def make_datalab_data():
+    """Tâches consacrées à la transformation des données dans un format
+    adapté aux activités du Datalab d'Anticor."""
+
+    # Initialisation
+    initialization()
+
+    # Récupération des données
+    df: pl.DataFrame = get_merge_clean()
+
+    print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
+    save_to_files(df, "dist/decp")
+    save_to_sqlite(df, "datalab", "data.economie.2019.2022.clean")
+
+    return df
+
+
+@flow(log_prints=True)
+def make_decpinfo_data():
+    # Tâches consacrées à la transformation des données dans un format
+    # adapté à decp.info (datasette)
+
+    # Récupération des données
+    df: pl.DataFrame = get_merge_clean()
 
     print("Concaténation et explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
 
     # print("Ajout des colonnes manquantes...")
-    # df = setup_tableschema_columns(df)
+    df = setup_tableschema_columns(df)
 
-    # Quand https://github.com/ColinMaudry/decp-processing/issues/17 sera résolu
-    # à supprimer
-    print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
-    save_to_files(df, "dist/decp")
-    save_to_sqlite(df, "datalab", "data.economie.2019.2022.clean")
+    # Ajout des données de la base SIRENE
+    df = enrich_from_sirene(df)
 
+    # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
+
+    # if not (os.curdir.endswith("dist")):
+    #     os.chdir("./dist")
+    #     print(os.curdir)
+    #
+    # print("Validation des données DECP avec le TableSchema...")
+    # validate_decp_against_tableschema()
+    #
+    # print("Création du data package (JSON)....")
+    # make_data_package()
+    #
+    # print("Création de la DB SQLite et des métadonnées datasette...")
+    # make_sqllite_and_datasette_metadata()
+
+    # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
+
+    return df
+
+
+@flow(log_prints=True)
+def enrich_from_sirene(df):
     # DONNÉES SIRENE ACHETEURS
 
     # Enrichissement des données pas prioritaire
@@ -123,28 +151,11 @@ def decp_processing():
     # save_to_files(df_decp_titulaires, "dist/decp-titulaires")
     # del df_decp_titulaires
 
-    # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
-
-    # if not (os.curdir.endswith("dist")):
-    #     os.chdir("./dist")
-    #     print(os.curdir)
-    #
-    # print("Validation des données DECP avec le TableSchema...")
-    # validate_decp_against_tableschema()
-    #
-    # print("Création du data package (JSON)....")
-    # make_data_package()
-    #
-    # print("Création de la DB SQLite et des métadonnées datasette...")
-    # make_sqllite_and_datasette_metadata()
-
-    # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
-
-    # quand ce sera stable !
+    return df
 
 
 if __name__ == "__main__":
-    decp_processing()
+    make_datalab_data()
 
     # On verra les deployments quand la base marchera
     #

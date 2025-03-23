@@ -1,10 +1,11 @@
 from prefect.testing.utilities import prefect_test_harness
-from flows import decp_processing
-
-print("avant test")
+from flows import make_datalab_data
+import polars as pl
 
 
 class TestFlow:
-    def test_flow(self):
+    def test_datalab_output(self):
         with prefect_test_harness():
-            result = decp_processing()
+            df: pl.DataFrame = make_datalab_data()
+
+            assert df.height > 1
