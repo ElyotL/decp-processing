@@ -1,12 +1,12 @@
 from prefect import flow
+from datetime import datetime
 from dotenv import load_dotenv
-import subprocess
 
 from tasks.get import *
 from tasks.clean import *
 from tasks.transform import *
 from tasks.output import *
-from tasks.analyse import *
+from tasks.analyse import list_data_issues
 from tasks.setup import *
 
 # from tasks.test import *
@@ -33,6 +33,9 @@ def get_merge_clean():
 
     print("Typage des colonnes...")
     df = fix_data_types(df)
+
+    print("Problèmes dans les données...")
+    list_data_issues(df)
 
     return df
 
