@@ -46,10 +46,6 @@ def clean_official_decp(df: pl.DataFrame):
         .cast(pl.Utf8)
     )
 
-    # Nombres
-    df = df.with_columns(pl.col(["montant"]).cast(pl.Float64))
-    df = df.with_columns(pl.col(["dureeMois", "offresRecues"]).cast(pl.Int32))
-
     # Nature
     df = df.with_columns(
         pl.col("nature").str.replace_many(
@@ -62,18 +58,38 @@ def clean_official_decp(df: pl.DataFrame):
 
 def fix_data_types(df: pl.DataFrame):
     numeric_dtypes = {
-        "dureeMois": pl.Int64,  # Polars uses pl.Int64 for nullable integers
+        "dureeMois": pl.Int16,
+        "dureeMoisModification": pl.Int16,
+        "dureeMoisActeSousTraitance": pl.Int16,
+        "dureeMoisModificationActeSousTraitance": pl.Int16,
+        "offresRecues": pl.Int16,
         "montant": pl.Float64,
+        "montantModification": pl.Float64,
+        "montantActeSousTraitance": pl.Float64,
+        "montantModificationActeSousTraitance": pl.Float64,
+        "tauxAvance": pl.Float64,
+        "variationPrixActeSousTraitance": pl.Float64,
     }
 
     for column, dtype in numeric_dtypes.items():
-        df = df.with_columns(pl.col(column).cast(dtype))
+        # Les valeurs qui ne sont pas des chiffres sont converties en null
+        df = df.with_columns(pl.col(column).cast(dtype, strict=False))
 
     # Convert date columns to datetime using str.strptime
     df = df.with_columns(
-        pl.col(["datePublicationDonnees", "dateNotification"]).str.strptime(
-            pl.Date, format="%Y-%m-%d"
-        )
+        # Les valeurs qui ne sont pas des dates sont converties en null
+        pl.col(
+            [
+                "dateNotification",
+                "dateNotificationActeSousTraitance",
+                "dateNotificationModificationModification",
+                "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
+                "datePublicationDonnees",
+                "datePublicationDonneesActeSousTraitance",
+                "datePublicationDonneesModificationActeSousTraitance",
+                "datePublicationDonneesModificationModification",
+            ]
+        ).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
     )
 
     return df

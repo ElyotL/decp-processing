@@ -3,6 +3,11 @@ from tasks.get import get_stats
 from datetime import datetime
 
 
+def list_data_issues(df: pl.DataFrame):
+    # Formats de dates
+    pass
+
+
 def generate_stats(df: pl.DataFrame):
     now = datetime.now()
 
