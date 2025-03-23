@@ -1,11 +1,33 @@
 import polars as pl
-from tasks.get import get_stats
 from datetime import datetime
+
+from tasks.get import get_stats
 
 
 def list_data_issues(df: pl.DataFrame):
-    # Formats de dates
-    pass
+    # Dates impossibles
+
+    date_columns = [
+        "dateNotification",
+        "dateNotificationActeSousTraitance",
+        "dateNotificationModificationModification",
+        "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
+        "datePublicationDonnees",
+        "datePublicationDonneesActeSousTraitance",
+        "datePublicationDonneesModificationActeSousTraitance",
+        "datePublicationDonneesModificationModification",
+    ]
+
+    for column in date_columns:
+        print(
+            "Dates impossibles dans la colonne ",
+            column,
+            ":",
+            df.filter(
+                (pl.col(column) < pl.date(2015, 1, 1))
+                | (pl.col(column) > datetime.now())
+            ).height,
+        )
 
 
 def generate_stats(df: pl.DataFrame):
