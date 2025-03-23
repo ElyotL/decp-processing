@@ -1,28 +1,43 @@
 import polars as pl
+import pandas as pd
 from tasks.get import get_decp_json
 
 
 def explode_titulaires(df: pl.DataFrame):
-    # VERS LE FORMAT DECP-TABLE-SCHEMA #
-
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
 
-    df["titulaire.id"] = [[] for r in range(len(df))]
-    df["titulaire.typeIdentifiant"] = [[] for r in range(len(df))]
+    df = df.with_columns(
+        [
+            pl.lit([]).alias("titulaire.id"),
+            pl.lit([]).alias("titulaire.typeIdentifiant"),
+        ]
+    )
 
     for num in range(1, 4):
         mask = df[f"titulaire_id_{num}"] != ""
-        df.loc[mask, "titulaire.id"] += df.loc[mask, f"titulaire_id_{num}"].apply(
-            lambda x: [x]
+        df = df.with_columns(
+            [
+                pl.when(mask)
+                .then(
+                    pl.concat_list(
+                        [pl.col("titulaire.id"), pl.col(f"titulaire_id_{num}")]
+                    )
+                )
+                .otherwise(pl.col("titulaire.id")),
+                pl.when(mask)
+                .then(
+                    pl.concat_list(
+                        [
+                            pl.col("titulaire.typeIdentifiant"),
+                            pl.col(f"titulaire_typeIdentifiant_{num}"),
+                        ]
+                    )
+                )
+                .otherwise(pl.col("titulaire.typeIdentifiant")),
+            ]
         )
-        df.loc[mask, "titulaire.typeIdentifiant"] += df.loc[
-            mask, f"titulaire_typeIdentifiant_{num}"
-        ].apply(lambda x: [x])
 
-    df = df.explode(
-        ["titulaire.id", "titulaire.typeIdentifiant"],
-        ignore_index=True,
-    )
+    df = df.explode(["titulaire.id", "titulaire.typeIdentifiant"])
 
     return df
 

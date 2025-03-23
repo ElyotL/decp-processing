@@ -12,6 +12,10 @@ from tasks.analyse import *
 # from tasks.test import *
 # from tasks.enrich import *
 
+CONNS = {}
+for db in ["datalab", "decp"]:
+    CONNS[db] = create_engine(f"sqlite:///dist/{db}.sqlite", echo=False)
+
 
 @flow(log_prints=True)
 def decp_processing():
@@ -36,11 +40,8 @@ def decp_processing():
 
     print("Récupération des données source...")
     df: pl.DataFrame = get_and_merge_decp_csv(date_now)
-    logger.info(f"DECP officielles: nombre de lignes: {df.index.size}")
+    logger.info(f"DECP officielles: nombre de lignes: {df.height}")
     save_to_sqlite(df, "datalab", "data.economie.2019.2022")
-
-    print("Ajout du champ uid")
-    df["uid"] = df["acheteur.id"] + df["id"]
 
     print("Nettoyage des données source...")
     df = clean_official_decp(df)
@@ -48,8 +49,10 @@ def decp_processing():
     print("Typage des colonnes...")
     df = fix_data_types(df)
 
-    print("Analyse des données source...")
-    generate_stats(df)
+    # À repenser:
+
+    # print("Analyse des données source...")
+    # generate_stats(df)
 
     print("Concaténation et explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)

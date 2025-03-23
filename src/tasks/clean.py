@@ -3,7 +3,12 @@ from numpy import nan
 
 
 def clean_official_decp(df: pl.DataFrame):
-    df = df.with_columns(pl.col(pl.String).str.replace_many([nan, None], ""))
+    # Remplacement des valeurs nulles
+    df = df.with_columns(
+        pl.col(pl.String).str.replace_many(
+            ["CDL", "INX NC", "MQ", "Pas de groupement", "INX None"], ""
+        )
+    )
 
     # Nettoyage des identifiants de marchés
     df = df.with_columns(pl.col("id").str.replace_all(r"[,\\./]", "_"))
@@ -22,7 +27,8 @@ def clean_official_decp(df: pl.DataFrame):
     date_replacements = {
         # ID marché invalide et SIRET de l'acheteur
         "0002-11-30": "",
-        "September, 16 2021 00:00:00": "2021-09-16",  # 20007695800012 19830766200017 (plein !)
+        "September, 16 2021 00:00:00": "2021-09-16",  # 2000769
+        # 5800012 19830766200017 (plein !)
         "16 2021 00:00:00": "",
         "0222-04-29": "2022-04-29",  # 202201L0100
         "0021-12-05": "2022-12-05",  # 20222022/1400
@@ -41,9 +47,8 @@ def clean_official_decp(df: pl.DataFrame):
     )
 
     # Nombres
-    df = df.with_columns(
-        pl.col(["dureeMois", "montant"]).replace("", None).cast(pl.Float64)
-    )
+    df = df.with_columns(pl.col(["montant"]).cast(pl.Float64))
+    df = df.with_columns(pl.col(["dureeMois", "offresRecues"]).cast(pl.Int32))
 
     # Nature
     df = df.with_columns(
@@ -67,7 +72,7 @@ def fix_data_types(df: pl.DataFrame):
     # Convert date columns to datetime using str.strptime
     df = df.with_columns(
         pl.col(["datePublicationDonnees", "dateNotification"]).str.strptime(
-            pl.Date, format="%d-%m-%Y"
+            pl.Date, format="%Y-%m-%d"
         )
     )
 

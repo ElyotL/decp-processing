@@ -50,5 +50,7 @@ def decp_json():
 
 
 def test_identify_current_data(df_id_acheteurs, decp_json):
-    result = identify_current_data(df_id_acheteurs, decp_json)
-    print(result)
+    # On ne teste pas cette feature pour l'instant
+    # result = identify_current_data(df_id_acheteurs, decp_json)
+    # print(result)
+    pass

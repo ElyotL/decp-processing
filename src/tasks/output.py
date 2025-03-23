@@ -4,13 +4,15 @@ from sqlalchemy import create_engine
 
 
 def save_to_files(df: pl.DataFrame, path: str):
-    df.to_csv(f"{path}.csv", index=None)
-    df.to_parquet(f"{path}.parquet", index=None)
+    df.write_csv(f"{path}.csv")
+    df.write_parquet(f"{path}.parquet")
 
 
 def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str):
-    conn = create_engine(f"sqlite:///dist/{database}.sqlite", echo=False)
-    df.write_database(table_name, conn, if_table_exists="replace")
+    from flows import CONNS
+
+    # Les noms de tables contiennent des points, donc ils doivent être entre guillemets
+    df.write_database(f'"{table_name}"', CONNS[database], if_table_exists="replace")
 
 
 def make_data_package():

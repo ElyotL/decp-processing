@@ -1,6 +1,8 @@
 import polars as pl
 from httpx import get
 import os
+
+from polars.polars import ColumnNotFoundError
 from prefect import task
 from prefect.futures import wait
 from pathlib import Path
@@ -31,13 +33,17 @@ def get_decp_csv(date_now: str, year: str):
 
     df: pl.DataFrame = pl.read_csv(
         decp_augmente_valides_file,
-        sep=";",
+        separator=";",
         schema_overrides={
             "titulaire_id_1": str,
             "titulaire_id_2": str,
             "titulaire_id_3": str,
             "acheteur.id": str,
             "lieuExecution.code": str,
+            # Plus simple de tout mettre en string pour la concaténation des df
+            "offresRecues": str,
+            "dureeMoisModification": str,
+            "montantModification": str,
         },
     )
 
@@ -47,7 +53,9 @@ def get_decp_csv(date_now: str, year: str):
         )  # SQlite le voit comme un doublon de typePrix, et les données semblent être les mêmes
 
     save_to_sqlite(df, "datalab", f"data.economie.{year}.ori")
-    df["source_open_data"] = f"data.economie valides {year}"
+    df = df.with_columns(
+        pl.lit(f"data.economie valides {year}").alias("source_open_data")
+    )
 
     return df
 
@@ -92,7 +100,14 @@ def get_and_merge_decp_csv(date_now: str):
     )
 
     # Concaténation des données format 2019 et 2022
-    df = pl.concat([dfs["2019"], dfs["2022"]], how="vertical")
+    for col in dfs["2019"].columns:
+        try:
+            if dfs["2019"][col].dtype != dfs["2022"][col].dtype:
+                print(col, ": ", dfs["2019"][col].dtype, dfs["2022"][col].dtype)
+        except ColumnNotFoundError:
+            print(f"Column {col} is not in 2022")
+
+    df = pl.concat([dfs["2019"], dfs["2022"]], how="diagonal")
 
     return df
 
