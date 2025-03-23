@@ -10,7 +10,7 @@ from pathlib import Path
 from tasks.output import save_to_sqlite
 
 
-@task
+@task(retries=10, retry_delay_seconds=5)
 def get_decp_csv(date_now: str, year: str):
     """Téléchargement des DECP publiées par Bercy sur data.economie.gouv.fr."""
     print(f"-- téléchargement du format {year}")
