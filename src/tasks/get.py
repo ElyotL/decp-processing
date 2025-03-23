@@ -44,6 +44,7 @@ def get_decp_csv(date_now: str, year: str):
             "offresRecues": str,
             "dureeMoisModification": str,
             "montantModification": str,
+            "sousTraitanceDeclaree": str,
         },
     )
 

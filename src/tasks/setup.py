@@ -1,7 +1,6 @@
 import os
-import subprocess
-from dotenv import load_dotenv
 from prefect import task
+from shutil import rmtree
 
 
 @task()
@@ -11,8 +10,7 @@ def initialization():
     # command = "git pull origin main"
     # subprocess.run(command.split(" "))
 
-    print("Création du dossier dist/")
+    print("Suppression + création du dossier /dist")
     if os.path.exists("dist"):
-        print("dist exists")
-    else:
-        os.mkdir("dist")
+        rmtree("dist", ignore_errors=False)
+    os.mkdir("dist")
