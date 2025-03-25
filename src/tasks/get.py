@@ -35,6 +35,7 @@ def get_decp_csv(date_now: str, year: str):
 
     df: pl.DataFrame = pl.read_csv(
         decp_augmente_valides_file,
+        low_memory=True,
         separator=";",
         schema_overrides={
             "titulaire_id_1": str,
@@ -111,6 +112,7 @@ def get_merge_decp(date_now: str):
             print(f"Column {col} is not in 2022")
 
     df = pl.concat([dfs["2019"], dfs["2022"]], how="diagonal")
+    del dfs
 
     return df
 
