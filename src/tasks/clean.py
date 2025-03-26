@@ -19,9 +19,9 @@ def clean_decp(df: pl.DataFrame):
 
     # Suppression des lignes en doublon par UID (acheteur id + id)
     # Exemple : 20005584600014157140791205100
-    index_size_before = df.height
-    df = df.unique(subset=["uid"], maintain_order=False)
-    print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
+    # index_size_before = df.height
+    # df = df.unique(subset=["uid"], maintain_order=False)
+    # print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
 
     # Dates
     date_replacements = {
