@@ -33,8 +33,9 @@ def get_decp_csv(date_now: str, year: str):
     else:
         print(f"DECP d'aujourd'hui déjà téléchargées ({date_now})")
 
-    df: pl.DataFrame = pl.read_csv(
+    df: pl.LazyFrame = pl.scan_csv(
         decp_augmente_valides_file,
+        low_memory=True,
         separator=";",
         schema_overrides={
             "titulaire_id_1": str,
@@ -55,7 +56,9 @@ def get_decp_csv(date_now: str, year: str):
             "TypePrix"
         )  # SQlite le voit comme un doublon de typePrix, et les données semblent être les mêmes
 
+    df = df.collect()
     save_to_sqlite(df, "datalab", f"data.economie.{year}.ori")
+    df = df.lazy()
     df = df.with_columns(
         pl.lit(f"data.economie valides {year}").alias("source_open_data")
     )
@@ -103,14 +106,8 @@ def get_merge_decp(date_now: str):
     )
 
     # Concaténation des données format 2019 et 2022
-    for col in dfs["2019"].columns:
-        try:
-            if dfs["2019"][col].dtype != dfs["2022"][col].dtype:
-                print(col, ": ", dfs["2019"][col].dtype, dfs["2022"][col].dtype)
-        except ColumnNotFoundError:
-            print(f"Column {col} is not in 2022")
-
     df = pl.concat([dfs["2019"], dfs["2022"]], how="diagonal")
+    del dfs
 
     return df
 

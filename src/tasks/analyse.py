@@ -4,7 +4,9 @@ from datetime import datetime
 from tasks.get import get_stats
 
 
-def list_data_issues(df: pl.DataFrame):
+def list_data_issues(df: pl.LazyFrame):
+    df = df.collect()
+
     # Dates impossibles
 
     date_columns = [
