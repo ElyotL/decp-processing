@@ -56,7 +56,8 @@ def get_decp_csv(date_now: str, year: str):
             "TypePrix"
         )  # SQlite le voit comme un doublon de typePrix, et les données semblent être les mêmes
 
-    save_to_sqlite(df.collect(), "datalab", f"data.economie.{year}.ori")
+    df = df.collect()
+    save_to_sqlite(df, "datalab", f"data.economie.{year}.ori")
     df = df.lazy()
     df = df.with_columns(
         pl.lit(f"data.economie valides {year}").alias("source_open_data")
