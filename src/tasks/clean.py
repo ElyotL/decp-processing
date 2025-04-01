@@ -2,7 +2,7 @@ import polars as pl
 from numpy import nan
 
 
-def clean_official_decp(df: pl.DataFrame):
+def clean_decp(df: pl.DataFrame):
     # Remplacement des valeurs nulles
     df = df.with_columns(
         pl.col(pl.String).str.replace_many(
@@ -11,7 +11,7 @@ def clean_official_decp(df: pl.DataFrame):
     )
 
     # Nettoyage des identifiants de marchés
-    df = df.with_columns(pl.col("id").str.replace_all(r"[,\\./]", "_"))
+    df = df.with_columns(pl.col("id").str.replace_all(r"[ ,\\./]", "_"))
 
     # Ajout du champ uid
     # TODO: à déplacer autre part, dans transform
@@ -19,9 +19,9 @@ def clean_official_decp(df: pl.DataFrame):
 
     # Suppression des lignes en doublon par UID (acheteur id + id)
     # Exemple : 20005584600014157140791205100
-    index_size_before = df.height
-    df = df.unique(subset=["uid"], maintain_order=False)
-    print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
+    # index_size_before = df.height
+    # df = df.unique(subset=["uid"], maintain_order=False)
+    # print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
 
     # Dates
     date_replacements = {

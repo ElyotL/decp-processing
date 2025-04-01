@@ -21,15 +21,16 @@ for db in ["datalab", "decp"]:
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
 
-@flow(log_prints=True)
+@task(log_prints=True)
 def get_merge_clean():
     print("Récupération des données source...")
-    df: pl.DataFrame = get_and_merge_decp_csv(DATE_NOW)
+    df: pl.LazyFrame = get_merge_decp(DATE_NOW)
+    df = df.collect()
     print(f"DECP officielles: nombre de lignes: {df.height}")
     save_to_sqlite(df, "datalab", "data.economie.2019.2022")
 
     print("Nettoyage des données source...")
-    df = clean_official_decp(df)
+    df = clean_decp(df.lazy())
 
     print("Typage des colonnes...")
     df = fix_data_types(df)
@@ -48,8 +49,10 @@ def make_datalab_data():
     # Initialisation
     initialization()
 
-    # Récupération des données
-    df: pl.DataFrame = get_merge_clean()
+    # Récupération, fusion et nettoyage des données
+    df: pl.LazyFrame = get_merge_clean()
+
+    df = df.collect()
 
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
@@ -64,7 +67,7 @@ def make_decpinfo_data():
     # adapté à decp.info (datasette)
 
     # Récupération des données
-    df: pl.DataFrame = get_merge_clean()
+    df: pl.LazyFrame = get_merge_clean()
 
     print("Concaténation et explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
@@ -95,7 +98,7 @@ def make_decpinfo_data():
     return df
 
 
-@flow(log_prints=True)
+@task(log_prints=True)
 def enrich_from_sirene(df):
     # DONNÉES SIRENE ACHETEURS
 
