@@ -44,6 +44,50 @@ def explode_titulaires(df: pl.DataFrame):
     return df
 
 
+def merge_decp_json(files: list) -> pl.DataFrame:
+    dfs = []
+    for file in files:
+        df: pl.DataFrame = pl.read_parquet(f"{file}.parquet")
+        print(df.shape)
+        dfs.append(df)
+    for col1, col2 in zip(dfs[0].columns, dfs[1].columns):
+        print(col1, col2)
+
+    df = pl.concat(dfs, how="diagonal")
+
+    # Ordre des colonnes
+    df = df.select(
+        "uid",
+        "id",
+        "nature",
+        "acheteur.id",
+        "titulaire.id",
+        "titulaire.typeId",
+        "objet",
+        "montant",
+        "codeCPV",
+        "procedure",
+        "dureeMois",
+        "dateNotification",
+        "datePublicationDonnees",
+        "formePrix",
+        "attributionAvance",
+        "offresRecues",
+        "marcheInnovant",
+        "ccag",
+        "sousTraitanceDeclaree",
+        "typeGroupementOperateurs",
+        "tauxAvance",
+        "origineUE",
+        "origineFrance",
+        "dateDebutExecution",
+        "lieuExecution.code",
+        "lieuExecution.typeCode",
+        "idAccordCadre",
+    )
+    return df
+
+
 def setup_tableschema_columns(df: pl.DataFrame):
     # Ajout colonnes manquantes
 

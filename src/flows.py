@@ -5,7 +5,7 @@ import json
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
-from tasks.transform import *
+from tasks.transform import merge_decp_json
 from tasks.output import *
 from tasks.analyse import list_data_issues
 from tasks.setup import *
@@ -80,10 +80,10 @@ def get_clean_merge():
     files = clean_decp_json(files)
 
     print("Fusion des dataframes...")
-    exit(1)
+
     df = merge_decp_json(files)
 
-    # return df
+    return df
 
 
 @flow(log_prints=True)
@@ -95,15 +95,11 @@ def make_datalab_data():
     initialization()
 
     # Récupération, fusion et nettoyage des données
-    df: pl.LazyFrame = get_clean_merge()
-
-    df = df.collect()
+    df: pl.DataFrame = get_clean_merge()
 
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
-    save_to_sqlite(df, "datalab", "data.economie.2019.2022.clean")
-
-    return df
+    save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
 
 
 @flow(log_prints=True)

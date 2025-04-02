@@ -1,15 +1,13 @@
 import polars as pl
-import pandas as pd
 from httpx import get
 import os
 import json
 
 from polars.polars import ColumnNotFoundError
 from prefect import task
-from prefect.futures import wait
 from pathlib import Path
 
-from tasks.output import save_to_sqlite, save_to_files
+from tasks.output import save_to_files
 
 
 @task(retries=5, retry_delay_seconds=5)
@@ -17,7 +15,6 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
     """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
     return_files = []
     for json_file in json_files:
-        print(json_file["file_name"], json_file["url"])
         if json_file["process"] is True:
             url = json_file["url"]
             file_name = json_file["file_name"]
@@ -41,6 +38,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
             df: pl.DataFrame = pl.json_normalize(
                 decp_json["marches"]["marche"],
                 strict=False,
+                infer_schema_length=1000,
             )
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
@@ -48,6 +46,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
             # à part titulaires
 
             columns_to_drop = [
+                # Pas encore inclus
                 "typesPrix.typePrix",
                 "considerationsEnvironnementales.considerationEnvironnementale",
                 "considerationsSociales.considerationSociale",
@@ -56,6 +55,14 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "modifications",
                 "actesSousTraitance",
                 "modificationsActesSousTraitance",
+                # Champs de concessions
+                "_type",  # Marché ou Contrat de concession
+                "autoriteConcedante",
+                "concessionnaires",
+                "donneesExecution",
+                "valeurGlobale",
+                "montantSubventionPublique",
+                "dateSignature",
             ]
 
             for col in columns_to_drop:

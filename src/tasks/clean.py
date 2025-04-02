@@ -122,4 +122,11 @@ def fix_data_types(df: pl.LazyFrame):
         ).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
     )
 
+    # Champs booléens
+    df = df.with_columns(
+        pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
+            "true"
+        )
+    )
+
     return df
