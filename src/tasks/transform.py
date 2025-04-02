@@ -48,10 +48,7 @@ def merge_decp_json(files: list) -> pl.DataFrame:
     dfs = []
     for file in files:
         df: pl.DataFrame = pl.read_parquet(f"{file}.parquet")
-        print(df.shape)
         dfs.append(df)
-    for col1, col2 in zip(dfs[0].columns, dfs[1].columns):
-        print(col1, col2)
 
     df = pl.concat(dfs, how="diagonal")
 
@@ -80,7 +77,6 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "tauxAvance",
         "origineUE",
         "origineFrance",
-        "dateDebutExecution",
         "lieuExecution.code",
         "lieuExecution.typeCode",
         "idAccordCadre",

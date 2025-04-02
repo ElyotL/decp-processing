@@ -31,14 +31,16 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 with open(decp_json_file, "wb") as file:
                     file.write(request.content)
             else:
-                print(f"DECP d'aujourd'hui déjà téléchargées ({date_now})")
+                print(
+                    f"[{file_name.split('/')[-1]}] DECP d'aujourd'hui déjà téléchargées ({date_now})"
+                )
 
             with open(decp_json_file) as f:
                 decp_json = json.load(f)
             df: pl.DataFrame = pl.json_normalize(
                 decp_json["marches"]["marche"],
                 strict=False,
-                infer_schema_length=1000,
+                infer_schema_length=10000,
             )
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
@@ -63,6 +65,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "valeurGlobale",
                 "montantSubventionPublique",
                 "dateSignature",
+                "dateDebutExecution",
             ]
 
             for col in columns_to_drop:
@@ -70,6 +73,8 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                     df = df.drop(col)
                 except ColumnNotFoundError:
                     pass
+
+            print(f"[{file_name}]", df.shape)
 
             file = f"dist/get/{file_name}_{date_now}"
             return_files.append(file)
