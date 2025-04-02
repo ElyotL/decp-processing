@@ -1,136 +1,75 @@
 import polars as pl
+import pandas as pd
 from httpx import get
 import os
+import json
 
 from polars.polars import ColumnNotFoundError
 from prefect import task
 from prefect.futures import wait
 from pathlib import Path
 
-from tasks.output import save_to_sqlite
+from tasks.output import save_to_sqlite, save_to_files
 
 
 @task(retries=5, retry_delay_seconds=5)
-def get_decp_csv(date_now: str, year: str):
-    """Téléchargement des DECP publiées par Bercy sur data.economie.gouv.fr."""
-    print(f"-- téléchargement du format {year}")
-    csv_url = os.getenv(f"DECP_ENRICHIES_VALIDES_{year}_URL")
-    if csv_url.startswith("https"):
-        # Prod file
-        decp_augmente_valides_file: Path = Path(
-            f"data/decp_augmente_valides_{year}_{date_now}.csv"
-        )
-    else:
-        # Test file, pas de téléchargement
-        decp_augmente_valides_file: Path = Path(csv_url)
+def get_decp_json(json_files: dict, date_now: str) -> list:
+    """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
+    return_files = []
+    for json_file in json_files:
+        print(json_file["file_name"], json_file["url"])
+        if json_file["process"] is True:
+            url = json_file["url"]
+            file_name = json_file["file_name"]
 
-    if not (os.path.exists(decp_augmente_valides_file)):
-        request = get(
-            csv_url,
-        )
-        with open(decp_augmente_valides_file, "wb") as file:
-            file.write(request.content)
-    else:
-        print(f"DECP d'aujourd'hui déjà téléchargées ({date_now})")
+            if url.startswith("https"):
+                # Prod file
+                decp_json_file: Path = Path(f"data/{file_name}_{date_now}.json")
+            else:
+                # Test file, pas de téléchargement
+                decp_json_file: Path = Path(url)
 
-    df: pl.LazyFrame = pl.scan_csv(
-        decp_augmente_valides_file,
-        low_memory=True,
-        separator=";",
-        schema_overrides={
-            "titulaire_id_1": str,
-            "titulaire_id_2": str,
-            "titulaire_id_3": str,
-            "acheteur.id": str,
-            "lieuExecution.code": str,
-            # Plus simple de tout mettre en string pour la concaténation des df
-            "offresRecues": str,
-            "dureeMoisModification": str,
-            "montantModification": str,
-            "sousTraitanceDeclaree": str,
-        },
-    )
+            if not (os.path.exists(decp_json_file)):
+                request = get(url, follow_redirects=True)
+                with open(decp_json_file, "wb") as file:
+                    file.write(request.content)
+            else:
+                print(f"DECP d'aujourd'hui déjà téléchargées ({date_now})")
 
-    if year == "2019":
-        df = df.drop(
-            "TypePrix"
-        )  # SQlite le voit comme un doublon de typePrix, et les données semblent être les mêmes
+            with open(decp_json_file) as f:
+                decp_json = json.load(f)
+            df: pl.DataFrame = pl.json_normalize(
+                decp_json["marches"]["marche"],
+                strict=False,
+            )
 
-    df = df.collect()
-    save_to_sqlite(df, "datalab", f"data.economie.{year}.ori")
-    df = df.lazy()
-    df = df.with_columns(
-        pl.lit(f"data.economie valides {year}").alias("source_open_data")
-    )
+            # Pour l'instant on ne garde pas les champs qui demandent une explosion
+            # ou une eval
+            # à part titulaires
 
-    return df
+            columns_to_drop = [
+                "typesPrix.typePrix",
+                "considerationsEnvironnementales.considerationEnvironnementale",
+                "considerationsSociales.considerationSociale",
+                "techniques.technique",
+                "modalitesExecution.modaliteExecution",
+                "modifications",
+                "actesSousTraitance",
+                "modificationsActesSousTraitance",
+            ]
 
+            for col in columns_to_drop:
+                try:
+                    df = df.drop(col)
+                except ColumnNotFoundError:
+                    pass
 
-@task
-def get_merge_decp(date_now: str):
-    df_get = []
-    for year in ("2019", "2022"):
-        df_get.append(get_decp_csv.submit(date_now, year))
-
-    # On attend que la récupération concurrente des DECP soit terminée
-    wait(df_get)
-
-    dfs = {"2019": df_get[0].result(), "2022": df_get[1].result()}
-
-    # Suppression des colonnes abandonnées dans le format 2022
-    dfs["2019"] = dfs["2019"].drop(
-        [
-            "created_at",
-            "updated_at",
-            "booleanModification",
-            # seront réintégrées bientôt depuis les référentiels officiels (SIRENE, etc.)
-            "acheteur.nom",
-            "lieuExecution.nom",
-            "titulaire_denominationSociale_1",
-            "titulaire_denominationSociale_2",
-            "titulaire_denominationSociale_3",
-            # Supprimés pour l'instant, possiblement réintégrées plus tard
-            "actesSousTraitance",
-            "titulairesModification",
-            "modificationsActesSousTraitance",
-            "objetModification",
-        ]
-    )
-
-    # Renommage des colonnes qui ont changé de nom avec le format 2022
-    dfs["2019"] = dfs["2019"].rename(
-        {
-            "technique": "techniques",
-            "modaliteExecution": "modalitesExecution",
-        }
-    )
-
-    # Concaténation des données format 2019 et 2022
-    df = pl.concat([dfs["2019"], dfs["2022"]], how="diagonal")
-    del dfs
-
-    return df
-
-
-@task
-def get_decp_json(date_now: str):
-    import json_stream
-
-    if os.getenv("DECP_JSON_URL").startswith("https"):
-        # Prod file
-        decp_json_file: Path = Path(f"data/decp_{date_now}.csv")
-    else:
-        # Test file, pas de téléchargement
-        decp_json_file: Path = Path(os.getenv("DECP_JSON_URL"))
-
-    if not (os.path.exists(decp_json_file)):
-        request = get(os.getenv("DECP_JSON_URL"))
-        with open(decp_json_file, "wb") as file:
-            file.write(request.content)
-    else:
-        print(f"DECP JSON d'aujourd'hui déjà téléchargées ({date_now})")
-
-    return json_stream.load(decp_json_file)
+            file = f"dist/get/{file_name}_{date_now}"
+            return_files.append(file)
+            if not os.path.exists("dist/get"):
+                os.mkdir("dist/get")
+            save_to_files(df, file)
+    return return_files
 
 
 def get_stats():

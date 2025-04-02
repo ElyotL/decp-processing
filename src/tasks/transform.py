@@ -5,39 +5,41 @@ from tasks.get import get_decp_json
 
 def explode_titulaires(df: pl.DataFrame):
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
+    # et une colonne par champ
 
-    df = df.with_columns(
-        [
-            pl.lit([]).alias("titulaire.id"),
-            pl.lit([]).alias("titulaire.typeIdentifiant"),
-        ]
+    # Structure originale
+    # [{{"id": "abc", "typeIdentifiant": "SIRET"}}]
+
+    # Explosion de la liste de titulaires en autant de nouvelles lignes
+    df = df.explode("titulaires")
+
+    # Renommage du premier objet englobant
+    df = df.select(
+        pl.col("*"),
+        pl.col("titulaires")
+        .struct.rename_fields(["titulaires.object"])
+        .alias("titulaires_renamed"),
     )
 
-    for num in range(1, 4):
-        mask = df[f"titulaire_id_{num}"] != ""
-        df = df.with_columns(
-            [
-                pl.when(mask)
-                .then(
-                    pl.concat_list(
-                        [pl.col("titulaire.id"), pl.col(f"titulaire_id_{num}")]
-                    )
-                )
-                .otherwise(pl.col("titulaire.id")),
-                pl.when(mask)
-                .then(
-                    pl.concat_list(
-                        [
-                            pl.col("titulaire.typeIdentifiant"),
-                            pl.col(f"titulaire_typeIdentifiant_{num}"),
-                        ]
-                    )
-                )
-                .otherwise(pl.col("titulaire.typeIdentifiant")),
-            ]
-        )
+    # Extraction du premier objet dans une nouvelle colonne
+    df = df.unnest("titulaires_renamed")
 
-    df = df.explode(["titulaire.id", "titulaire.typeIdentifiant"])
+    # Renommage des champs de l'objet titulaire
+    df = df.select(
+        pl.col("*"),
+        pl.col("titulaires.object")
+        .struct.rename_fields(["titulaire.id", "titulaire.typeId"])
+        .alias("titulaire"),
+    )
+
+    # Extraction de l'objet titulaire
+    df = df.unnest("titulaire")
+
+    # Suppression des anciennes colonnes
+    df = df.drop(["titulaires", "titulaires.object"])
+
+    # Cast l'identifiant en string
+    df = df.with_columns(pl.col("titulaire.id").cast(pl.String))
 
     return df
 
