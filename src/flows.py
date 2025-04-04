@@ -7,7 +7,6 @@ from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
 from tasks.transform import merge_decp_json
 from tasks.output import *
-from tasks.analyse import list_data_issues
 from tasks.setup import *
 
 # from tasks.test import *
