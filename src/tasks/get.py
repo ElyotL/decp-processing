@@ -18,15 +18,15 @@ def get_json(date_now, json_file: dict):
     if url.startswith("https"):
         # Prod file
         decp_json_file: Path = Path(f"data/{filename}_{date_now}.json")
+        if not (os.path.exists(decp_json_file)):
+            request = get(url, follow_redirects=True)
+            with open(decp_json_file, "wb") as file:
+                file.write(request.content)
+        else:
+            print(f"[{filename}] DECP d'aujourd'hui déjà téléchargées ({date_now})")
     else:
         # Test file, pas de téléchargement
         decp_json_file: Path = Path(url)
-    if not (os.path.exists(decp_json_file)):
-        request = get(url, follow_redirects=True)
-        with open(decp_json_file, "wb") as file:
-            file.write(request.content)
-    else:
-        print(f"[{filename}] DECP d'aujourd'hui déjà téléchargées ({date_now})")
 
     return decp_json_file
 
