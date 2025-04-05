@@ -109,6 +109,13 @@ def get_merge_decp(date_now: str):
     df = pl.concat([dfs["2019"], dfs["2022"]], how="diagonal")
     del dfs
 
+    # Déduplication TRÈS basique pour l'instant, sans gérer les modifications
+    # Ce sera mieux fait dans le cadre de https://github.com/ColinMaudry/decp-processing/issues/32
+    avant = df.height
+    print("Lignes avant déduplication :", avant)
+    df = df.unique(subset=["uid"])
+    print("Lignes retirées par déduplication :", avant - df.height)
+
     return df
 
 
