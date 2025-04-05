@@ -36,3 +36,6 @@ env = [
     "DECP_JSON_FILES_PATH=data/decp_json_files_test.json"
 ]
 addopts = "-p no:warnings"
+
+[tool.prefect]
+logging.level = "INFO"

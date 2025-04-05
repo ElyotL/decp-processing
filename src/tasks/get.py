@@ -17,6 +17,7 @@ from tasks.output import save_to_files
 # from tasks.clean import preprocess_json_2022
 
 
+
 @task(retries=5, retry_delay_seconds=5)
 def get_json(date_now, json_file: dict):
     url = json_file["url"]
