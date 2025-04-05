@@ -62,8 +62,15 @@ pip install .[dev]
 pip install .'[dev]'
 ```
 
-### Avec Docker
-#### Pour windows
+Faites une copie de template.env, renommez-la en .env et adaptez les valeurs :
+
+```shell
+cp template.env .env
+nano .env
+```
+
+### Avec Docker (sous Windows)
+
 Construire et lancer le container
 ```bash
 ./script/docker_build_and_run.bat
@@ -74,6 +81,8 @@ Démarrer le serveur prefect une fois dans le container
 ./script/start_server_in_docker.sh
 ```
 Le serveur est accessible sur le navigateur à l'adresse http://127.0.0.1:4200/
+
+## Lancer le traitement des données
 
 Lancer le script
 ```bash

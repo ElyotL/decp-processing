@@ -1,0 +1,176 @@
+{
+  "marches": {
+    "marche": [
+      {
+        "id": "2022VI2022.242",
+        "acheteur": {
+          "id": "21974022200019"
+        },
+        "nature": "Marché",
+        "objet": "Eléctricité courant fort/courant faible lot no4",
+        "codeCPV": "45316110-9",
+        "procedure": "Appel d'offres ouvert",
+        "lieuExecution": {
+          "code": "97430",
+          "typeCode": "Code postal"
+        },
+        "dureeMois": 3,
+        "dateNotification": "2022-11-23",
+        "datePublicationDonnees": "2022-12-05",
+        "montant": 137614.0,
+        "formePrix": "Mixte",
+        "offresRecues": 0,
+        "ccag": "Fournitures courantes et services",
+        "typeGroupementOperateurs": "Pas de groupement",
+        "titulaires": [
+          {
+            "titulaire": {
+              "typeIdentifiant": "SIRET",
+              "id": "34027049500021"
+            }
+          },
+          {
+            "titulaire": {
+              "typeIdentifiant": "TVA",
+              "id": "99999999999"
+            }
+          }
+        ],
+        "considerationsSociales": {
+          "considerationSociale": [
+            "Pas de considération sociale"
+          ]
+        },
+        "considerationsEnvironnementales": {
+          "considerationEnvironnementale": [
+            "Pas de considération environnementale"
+          ]
+        },
+        "modalitesExecution": {
+          "modaliteExecution": [
+            "Sans objet"
+          ]
+        },
+        "techniques": {
+          "technique": [
+            "Sans objet"
+          ]
+        },
+        "typesPrix": {
+          "typePrix": [
+            "Définitif révisable"
+          ]
+        },
+        "actesSousTraitance": [
+  {
+    "acteSousTraitance": {
+      "id": 1,
+      "sousTraitant": {
+        "id": "214356",
+        "typeIdentifiant": "SIRET"
+      },
+      "dureeMois": 12,
+      "dateNotification": "2023-10-11",
+      "montant": 123456.89,
+      "variationPrix": "Révisable",
+      "datePublicationDonnees": "2023-10-12"
+    }
+  }
+], "modificationsActesSousTraitance":   [
+  {
+    "modificationActeSousTraitance": {
+      "dureeMois": 6,
+      "montant": 392085,
+      "id": 1,
+      "dateNotificationModificationSousTraitance": "2024-07-16",
+      "datePublicationDonnees": "2024-10-03"
+    }
+  }],
+        "source": "data.gouv.fr_pes_2024",
+        "modifications": [
+          {
+            "modification": {
+              "id": 1,
+              "dateNotificationModification": "2023-04-24",
+              "datePublicationDonneesModification": "2023-04-24"
+            }
+          }
+        ],
+        "origineUE": 0.3,
+        "origineFrance": 0.7,
+        "_type": "Marché",
+        "marcheInnovant": true
+      },
+      {
+        "id": "202207LOT03",
+        "acheteur": {
+          "id": "21500222100012"
+        },
+        "nature": "Marché",
+        "objet": "Rénovation de la petite salle du préau-Gros ouvre-carrelage",
+        "codeCPV": "45223220-4",
+        "procedure": "Procédure adaptée",
+        "lieuExecution": {
+          "code": "50340",
+          "typeCode": "Code postal"
+        },
+        "dureeMois": 11,
+        "dateNotification": "2022-10-19",
+        "datePublicationDonnees": "2023-03-08",
+        "montant": 44996.25,
+        "formePrix": "Mixte",
+        "offresRecues": 0,
+        "ccag": "Pas de CCAG",
+        "typeGroupementOperateurs": "Pas de groupement",
+        "titulaires": [
+          {
+            "titulaire": {
+              "typeIdentifiant": "SIRET",
+              "id": "91824625700011"
+            }
+          }
+        ],
+        "considerationsSociales": {
+          "considerationSociale": [
+            "Pas de considération sociale"
+          ]
+        },
+        "considerationsEnvironnementales": {
+          "considerationEnvironnementale": [
+            "Pas de considération environnementale"
+          ]
+        },
+        "modalitesExecution": {
+          "modaliteExecution": [
+            "Sans objet"
+          ]
+        },
+        "techniques": {
+          "technique": [
+            "Sans objet"
+          ]
+        },
+        "typesPrix": {
+          "typePrix": [
+            "Définitif révisable"
+          ]
+        },
+        "actesSousTraitance": null,
+        "source": "data.gouv.fr_pes_2024",
+        "modifications": [
+          {
+            "modification": {
+              "id": 1,
+              "dateNotificationModification": "2023-12-20",
+              "datePublicationDonneesModification": "2024-02-06",
+              "montant": 49599.25
+            }
+          }
+        ],
+        "origineUE": null,
+        "origineFrance": null,
+        "_type": "Marché"
+      }
+    ]
+  }
+}

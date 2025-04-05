@@ -1,44 +1,84 @@
 import polars as pl
-import pandas as pd
-from tasks.get import get_decp_json
 
 
 def explode_titulaires(df: pl.DataFrame):
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
+    # et une colonne par champ
 
-    df = df.with_columns(
-        [
-            pl.lit([]).alias("titulaire.id"),
-            pl.lit([]).alias("titulaire.typeIdentifiant"),
-        ]
+    # Structure originale
+    # [{{"id": "abc", "typeIdentifiant": "SIRET"}}]
+
+    # Explosion de la liste de titulaires en autant de nouvelles lignes
+    df = df.explode("titulaires")
+
+    # Renommage du premier objet englobant
+    df = df.select(
+        pl.col("*"),
+        pl.col("titulaires")
+        .struct.rename_fields(["titulaires.object"])
+        .alias("titulaires_renamed"),
     )
 
-    for num in range(1, 4):
-        mask = df[f"titulaire_id_{num}"] != ""
-        df = df.with_columns(
-            [
-                pl.when(mask)
-                .then(
-                    pl.concat_list(
-                        [pl.col("titulaire.id"), pl.col(f"titulaire_id_{num}")]
-                    )
-                )
-                .otherwise(pl.col("titulaire.id")),
-                pl.when(mask)
-                .then(
-                    pl.concat_list(
-                        [
-                            pl.col("titulaire.typeIdentifiant"),
-                            pl.col(f"titulaire_typeIdentifiant_{num}"),
-                        ]
-                    )
-                )
-                .otherwise(pl.col("titulaire.typeIdentifiant")),
-            ]
-        )
+    # Extraction du premier objet dans une nouvelle colonne
+    df = df.unnest("titulaires_renamed")
 
-    df = df.explode(["titulaire.id", "titulaire.typeIdentifiant"])
+    # Renommage des champs de l'objet titulaire
+    df = df.select(
+        pl.col("*"),
+        pl.col("titulaires.object")
+        .struct.rename_fields(["titulaire.id", "titulaire.typeId"])
+        .alias("titulaire"),
+    )
 
+    # Extraction de l'objet titulaire
+    df = df.unnest("titulaire")
+
+    # Suppression des anciennes colonnes
+    df = df.drop(["titulaires", "titulaires.object"])
+
+    # Cast l'identifiant en string
+    df = df.with_columns(pl.col("titulaire.id").cast(pl.String))
+
+    return df
+
+
+def merge_decp_json(files: list) -> pl.DataFrame:
+    dfs = []
+    for file in files:
+        df: pl.DataFrame = pl.read_parquet(f"{file}.parquet")
+        dfs.append(df)
+
+    df = pl.concat(dfs, how="diagonal")
+
+    # Ordre des colonnes
+    df = df.select(
+        "uid",
+        "id",
+        "nature",
+        "acheteur.id",
+        "titulaire.id",
+        "titulaire.typeId",
+        "objet",
+        "montant",
+        "codeCPV",
+        "procedure",
+        "dureeMois",
+        "dateNotification",
+        "datePublicationDonnees",
+        "formePrix",
+        "attributionAvance",
+        "offresRecues",
+        "marcheInnovant",
+        "ccag",
+        "sousTraitanceDeclaree",
+        "typeGroupementOperateurs",
+        "tauxAvance",
+        "origineUE",
+        "origineFrance",
+        "lieuExecution.code",
+        "lieuExecution.typeCode",
+        "idAccordCadre",
+    )
     return df
 
 
@@ -170,44 +210,3 @@ def rename_titulaire_sirene_columns(df_sirets_titulaires: pl.DataFrame):
     df_sirets_titulaires = df_sirets_titulaires.rename(columns=renaming)
 
     return df_sirets_titulaires
-
-
-def identify_current_data(df: pl.DataFrame, decp_json_test=None):
-    """Récupérer depuis les données originales en JSON le nombre de modifications
-    de chaque marché. En le comparant aux deux derniers chiffres de l'id de marché
-    (qui est censé être le nombre de modifications), on peut isoler l'identifiant
-    racine du marché, et l'utiliser pour rassembler les marchés ayant le même historique
-    entre eux, puis déterminer lequel porte les modifications les plus récentes.
-    """
-    df = df.copy()[["acheteur.id", "id"]].sort_values(by=["acheteur.id", "id"])
-    df = df.drop_duplicates()
-
-    if type(decp_json_test) == pl.DataFrame:
-        decp_json = decp_json_test
-    else:
-        decp_json = get_decp_json()
-
-    decp_json_marches = decp_json["marches"]["marche"]
-
-    id_and_modifications = []
-
-    for marche in decp_json_marches:
-        id = marche["id"]
-        id_acheteur = marche["acheteur"]["id"]
-
-        try:
-            nb_modifications = len(marche["modifications"])
-        except KeyError:
-            nb_modifications = 0
-
-        if int(id[-2:]) == nb_modifications:
-            id_and_modification = {
-                "id": id[:-2],
-                "acheteur.id": id_acheteur,
-                "nb_modifications": nb_modifications,
-            }
-            id_and_modifications.append(id_and_modification)
-
-        # TODO : lier les données sur les modifications
-
-    return id_and_modifications

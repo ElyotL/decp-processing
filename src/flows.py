@@ -1,13 +1,16 @@
+from os import getenv
+
 from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
+import json
 
-from tasks.get import *
-from tasks.clean import *
-from tasks.transform import *
+from tasks.get import get_decp_json
+from tasks.clean import clean_decp_json, fix_data_types
+from tasks.transform import merge_decp_json
 from tasks.output import *
-from tasks.analyse import list_data_issues
 from tasks.setup import *
+from tasks.publish import publish_to_datagouv
 
 # from tasks.test import *
 # from tasks.enrich import *
@@ -20,23 +23,22 @@ for db in ["datalab", "decp"]:
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
+with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
+    DECP_JSON_FILES = json.load(f)
+
 
 @task(log_prints=True)
-def get_merge_clean():
+def get_clean_merge():
     print("Récupération des données source...")
-    df: pl.LazyFrame = get_merge_decp(DATE_NOW)
-    df = df.collect()
-    print(f"DECP officielles: nombre de lignes: {df.height}")
-    save_to_sqlite(df, "datalab", "data.economie.2019.2022")
+    files = get_decp_json(DECP_JSON_FILES, DATE_NOW)
 
-    print("Nettoyage des données source...")
-    df = clean_decp(df.lazy())
+    print("Nettoyage des données source et typage des colonnes...")
+    files = clean_decp_json(files)
 
-    print("Typage des colonnes...")
-    df = fix_data_types(df)
+    print("Fusion des dataframes...")
+    df = merge_decp_json(files)
 
-    print("Problèmes dans les données...")
-    list_data_issues(df)
+    print("Taille après merge: ", df.shape)
 
     return df
 
@@ -50,15 +52,15 @@ def make_datalab_data():
     initialization()
 
     # Récupération, fusion et nettoyage des données
-    df: pl.LazyFrame = get_merge_clean()
-
-    df = df.collect()
+    df: pl.DataFrame = get_clean_merge()
 
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
-    save_to_sqlite(df, "datalab", "data.economie.2019.2022.clean")
+    save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
 
-    return df
+    if os.environ["DECP_PROCESSING_PUBLISH"]:
+        print("Publication sur data.gouv.fr...")
+        publish_to_datagouv()
 
 
 @flow(log_prints=True)
@@ -67,7 +69,7 @@ def make_decpinfo_data():
     # adapté à decp.info (datasette)
 
     # Récupération des données
-    df: pl.LazyFrame = get_merge_clean()
+    df: pl.LazyFrame = get_clean_merge()
 
     print("Concaténation et explosion des titulaires, un par ligne...")
     df = explode_titulaires(df)
