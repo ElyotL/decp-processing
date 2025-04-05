@@ -9,14 +9,13 @@ authors = [
 dependencies = [
     "python-dotenv",
     "pandas",
-            "polars",
+    "polars",
     "pyarrow",
     "tableschema",
     "frictionless",
     "datapackage-to-datasette",
     "ipykernel",
     "prefect",
-    "json_stream"
 ]
 
 [project.optional-dependencies]
@@ -34,7 +33,9 @@ testpaths = [
     "tests",
 ]
 env = [
-    "DECP_ENRICHIES_VALIDES_2019_URL=data/decp_augmente_valides_2019_test.csv",
-    "DECP_ENRICHIES_VALIDES_2022_URL=data/decp_augmente_valides_2022_test.csv"
+    "DECP_JSON_FILES_PATH=data/decp_json_files_test.json"
 ]
 addopts = "-p no:warnings"
+
+[tool.prefect]
+logging.level = "INFO"

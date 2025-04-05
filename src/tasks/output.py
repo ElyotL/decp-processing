@@ -4,7 +4,8 @@ from sqlalchemy import create_engine
 
 
 def save_to_files(df: pl.DataFrame, path: str):
-    df.write_csv(f"{path}.csv")
+    # Le format CSV ne supporte pas les données "nested", donc problématique pour les données "get"
+    # df.write_csv(f"{path}.csv")
     df.write_parquet(f"{path}.parquet")
 
 

@@ -1,6 +1,7 @@
 dist
 logs
 *.csv
+.env
 !decp_augmente_valides_*_test.csv
 .venv
 *.egg-info
@@ -11,4 +12,7 @@ __pycache__
 .pytest_cache
 build
 .vscode
+.idea
 todo.md
+data/decp-*.json
+test.*

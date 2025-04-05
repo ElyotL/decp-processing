@@ -33,6 +33,7 @@ Vous pouvez...
 
 ## Installation
 
+### En utilisant un environnement virtuel (recommandé)
 Je vous recommande d'utiliser un environnement virtuel Python pour isoler l'installation des dépendances :
 
 ```bash
@@ -59,6 +60,33 @@ pip install .[dev]
 # sous zsh
 
 pip install .'[dev]'
+```
+
+Faites une copie de template.env, renommez-la en .env et adaptez les valeurs :
+
+```shell
+cp template.env .env
+nano .env
+```
+
+### Avec Docker (sous Windows)
+
+Construire et lancer le container
+```bash
+./script/docker_build_and_run.bat
+```
+
+Démarrer le serveur prefect une fois dans le container
+```bash
+./script/start_server_in_docker.sh
+```
+Le serveur est accessible sur le navigateur à l'adresse http://127.0.0.1:4200/
+
+## Lancer le traitement des données
+
+Lancer le script
+```bash
+python src/flows.py
 ```
 
 ## Test
