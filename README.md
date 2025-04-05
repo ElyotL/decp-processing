@@ -61,6 +61,13 @@ pip install .[dev]
 pip install .'[dev]'
 ```
 
+Faites une copie de template.env, renommez-la en .env et adaptez les valeurs :
+
+```shell
+cp template.env .env
+nano .env
+```
+
 ## Test
 
 Pour lancer les tests unitaires :

@@ -1,3 +1,5 @@
+from os import getenv
+
 from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
@@ -8,6 +10,7 @@ from tasks.clean import clean_decp_json, fix_data_types
 from tasks.transform import merge_decp_json
 from tasks.output import *
 from tasks.setup import *
+from tasks.publish import publish_to_datagouv
 
 # from tasks.test import *
 # from tasks.enrich import *
@@ -54,6 +57,10 @@ def make_datalab_data():
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
     save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
+
+    if os.environ["DECP_PROCESSING_PUBLISH"]:
+        print("Publication sur data.gouv.fr...")
+        publish_to_datagouv()
 
 
 @flow(log_prints=True)

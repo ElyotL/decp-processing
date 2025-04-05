@@ -9,14 +9,13 @@ authors = [
 dependencies = [
     "python-dotenv",
     "pandas",
-            "polars",
+    "polars",
     "pyarrow",
     "tableschema",
     "frictionless",
     "datapackage-to-datasette",
     "ipykernel",
     "prefect",
-    "json_stream"
 ]
 
 [project.optional-dependencies]
