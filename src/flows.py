@@ -20,52 +20,6 @@ for db in ["datalab", "decp"]:
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
-COLUMNS = {
-    "string": [
-        "id",
-        "ccag",
-        "nature",
-        "objet",
-        "codeCPV",
-        "idAccordCadre",
-        "typeGroupementOperateurs",
-        "procedure",
-        "acheteur.id",
-        "lieuExecution.code",
-        "lieuExecution.typeCode",
-    ],
-    "float": [
-        "origineUE",
-        "origineFrance",
-        "tauxAvance",
-        "montant",
-    ],
-    "integer": [
-        "offresRecues",
-        "dureeMois",
-    ],
-    "date": [
-        "datePublicationDonnees",
-        "dateNotification",
-    ],
-    "boolean": [
-        "marcheInnovant",
-        "attributionAvance",
-        "sousTraitanceDeclaree",
-    ],
-    "object": [
-        "titulaires",
-        "actesSousTraitance",
-        "modifications",
-        "modificationsActesSousTraitance",
-        "typesPrix",
-        "considerationsEnvironnementales",
-        "considerationsSociales",
-        "techniques",
-        "modalitesExecution",
-    ],
-}
-
 with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
     DECP_JSON_FILES = json.load(f)
 
@@ -79,8 +33,9 @@ def get_clean_merge():
     files = clean_decp_json(files)
 
     print("Fusion des dataframes...")
-
     df = merge_decp_json(files)
+
+    print("Taille après merge: ", df.shape)
 
     return df
 
