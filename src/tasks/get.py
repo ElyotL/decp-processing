@@ -39,7 +39,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
         if json_file["process"] is True:
             decp_json_file: Path = get_json(date_now, json_file)
 
-            with open(decp_json_file) as f:
+            with open(decp_json_file, encoding="utf8") as f:
                 decp_json = json.load(f)
 
             filename = json_file["file_name"]
