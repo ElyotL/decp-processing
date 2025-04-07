@@ -4,6 +4,7 @@ from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
 import json
+import shutil
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
@@ -14,6 +15,9 @@ from tasks.publish import publish_to_datagouv
 
 # from tasks.test import *
 # from tasks.enrich import *
+
+if not os.path.exists(".env"):
+    shutil.copyfile("template.env", ".env")
 
 load_dotenv()
 
@@ -58,7 +62,7 @@ def make_datalab_data():
     save_to_files(df, "dist/decp")
     save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
 
-    if os.getenv("DEBUG", 'False').lower() == 'true':
+    if os.getenv("DEBUG", "False").lower() == "true":
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv()
 
