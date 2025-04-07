@@ -11,7 +11,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install any needed packages specified in requirements.txt
+# Install any needed packages specified in pyproject.toml
 RUN pip install .
 
 # Run main.py when the container launches
