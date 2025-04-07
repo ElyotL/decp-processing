@@ -17,6 +17,7 @@ from tasks.publish import publish_to_datagouv
 # from tasks.enrich import *
 
 if not os.path.exists(".env"):
+    print("Création du fichier .env à partir de template.env")
     shutil.copyfile("template.env", ".env")
 
 load_dotenv()
