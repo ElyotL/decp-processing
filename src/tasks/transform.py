@@ -58,7 +58,7 @@ def normalize_tables(df):
 
     # ACHETEURS
 
-    df_acheteurs: pl.DataFrame = pl.DataFrame(df.to_arrow()).select("acheteur.id")
+    df_acheteurs: pl.DataFrame = df.select("acheteur.id")
     df_acheteurs = df_acheteurs.rename({"acheteur.id": "id"})
     df_acheteurs = df_acheteurs.unique().sort(by="id")
     save_to_sqlite(df_acheteurs, "datalab", "acheteurs", "id")
@@ -67,12 +67,7 @@ def normalize_tables(df):
     # TITULAIRES
 
     ## Table entreprises
-    df_titulaires: pl.DataFrame = pl.DataFrame(df.to_arrow()).select(
-        "titulaire.id", "titulaire.typeIdentifiant"
-    )
-    identifier_types = (
-        df_titulaires.select(pl.col("titulaire.typeIdentifiant")).to_series().to_list()
-    )
+    df_titulaires: pl.DataFrame = df.select("titulaire.id", "titulaire.typeIdentifiant")
 
     ### On garde les champs id et typeIdentifiant en clé primaire composite
     df_titulaires = df_titulaires.rename(
@@ -83,7 +78,7 @@ def normalize_tables(df):
     del df_titulaires
 
     ## Table marches_titulaires
-    df_marches_titulaires: pl.DataFrame = pl.DataFrame(df.to_arrow()).select(
+    df_marches_titulaires: pl.DataFrame = df.select(
         "uid", "titulaire.id", "titulaire.typeIdentifiant"
     )
     df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche.uid"})
