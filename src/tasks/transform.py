@@ -53,7 +53,7 @@ def normalize_tables(df):
     df_marches = df_marches.unique("uid").sort(
         by="datePublicationDonnees", descending=True
     )
-    save_to_sqlite(df_marches, "datalab", "marches")
+    save_to_sqlite(df_marches, "datalab", "marches", "uid")
     del df_marches
 
     # ACHETEURS
@@ -61,7 +61,7 @@ def normalize_tables(df):
     df_acheteurs: pl.DataFrame = pl.DataFrame(df.to_arrow()).select("acheteur.id")
     df_acheteurs = df_acheteurs.rename({"acheteur.id": "id"})
     df_acheteurs = df_acheteurs.unique().sort(by="id")
-    save_to_sqlite(df_acheteurs, "datalab", "acheteurs")
+    save_to_sqlite(df_acheteurs, "datalab", "acheteurs", "id")
     del df_acheteurs
 
     # TITULAIRES
@@ -79,7 +79,7 @@ def normalize_tables(df):
         {"titulaire.id": "id", "titulaire.typeIdentifiant": "typeIdentifiant"}
     )
     df_titulaires = df_titulaires.unique().sort(by=["id"])
-    save_to_sqlite(df_titulaires, "datalab", "entreprises")
+    save_to_sqlite(df_titulaires, "datalab", "entreprises", "id, typeIdentifiant")
     del df_titulaires
 
     ## Table marches_titulaires
@@ -87,7 +87,12 @@ def normalize_tables(df):
         "uid", "titulaire.id", "titulaire.typeIdentifiant"
     )
     df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche.uid"})
-    save_to_sqlite(df_marches_titulaires, "datalab", "marches_titulaires")
+    save_to_sqlite(
+        df_marches_titulaires,
+        "datalab",
+        "marches_titulaires",
+        '"marche.uid", "titulaire.id", "titulaire.typeIdentifiant"',
+    )
     del df_marches_titulaires
 
     # TODO ajouter les sous-traitants quand ils seront ajoutés aux données

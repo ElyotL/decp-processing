@@ -4,8 +4,8 @@ from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
 import json
-from sqlalchemy import create_engine
 import polars as pl
+import sqlite3
 
 
 from tasks.get import get_decp_json
@@ -15,14 +15,7 @@ from tasks.output import save_to_files, save_to_sqlite
 from tasks.setup import *
 from tasks.publish import publish_to_datagouv
 
-# from tasks.test import *
-# from tasks.enrich import *
-
 load_dotenv()
-
-CONNS = {}
-for db in ["datalab", "decp"]:
-    CONNS[db] = create_engine(f"sqlite:///dist/{db}.sqlite", echo=False)
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
@@ -59,7 +52,12 @@ def make_datalab_data():
 
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
-    save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
+    save_to_sqlite(
+        df,
+        "datalab",
+        "data.gouv.fr.2022.clean",
+        'uid, "titulaire.id", "titulaire.typeIdentifiant"',
+    )
 
     print("Normalisation des tables...")
     normalize_tables(df)
