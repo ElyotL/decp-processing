@@ -50,14 +50,17 @@ def normalize_tables(df):
     df_marches: pl.DataFrame = pl.DataFrame(df.to_arrow()).drop(
         "titulaire.id", "titulaire.typeIdentifiant"
     )
-    df_marches = df_marches.unique("uid")
+    df_marches = df_marches.unique("uid").sort(
+        by="datePublicationDonnees", descending=True
+    )
     save_to_sqlite(df_marches, "datalab", "marches")
     del df_marches
 
     # ACHETEURS
 
     df_acheteurs: pl.DataFrame = pl.DataFrame(df.to_arrow()).select("acheteur.id")
-    df_acheteurs = df_acheteurs.unique()
+    df_acheteurs = df_acheteurs.rename({"acheteur.id": "id"})
+    df_acheteurs = df_acheteurs.unique().sort(by="id")
     save_to_sqlite(df_acheteurs, "datalab", "acheteurs")
     del df_acheteurs
 
@@ -68,26 +71,18 @@ def normalize_tables(df):
         "titulaire.id", "titulaire.typeIdentifiant"
     )
     identifier_types = (
-        df_titulaires.select(pl.col("titulaire.typeIdentifiant").unique())
-        .to_series()
-        .to_list()
+        df_titulaires.select(pl.col("titulaire.typeIdentifiant")).to_series().to_list()
     )
 
-    ### Pivot du dataframe pour avoir
-    df_titulaires = df_titulaires.with_columns(
-        [
-            pl.when(pl.col("titulaire.typeIdentifiant") == id_type)
-            .then(pl.col("titulaire.id"))
-            .alias(id_type.lower())
-            for id_type in identifier_types
-        ]
+    ### On garde les champs id et typeIdentifiant en clé primaire composite
+    df_titulaires = df_titulaires.rename(
+        {"titulaire.id": "id", "titulaire.typeIdentifiant": "typeIdentifiant"}
     )
-    df_titulaires = df_titulaires.drop(["titulaire.id", "titulaire.typeIdentifiant"])
-    df_titulaires = df_titulaires.unique()
+    df_titulaires = df_titulaires.unique().sort(by=["id"])
     save_to_sqlite(df_titulaires, "datalab", "entreprises")
     del df_titulaires
 
-    ## marches_titulaires
+    ## Table marches_titulaires
     df_marches_titulaires: pl.DataFrame = pl.DataFrame(df.to_arrow()).select(
         "uid", "titulaire.id", "titulaire.typeIdentifiant"
     )
@@ -145,6 +140,11 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "idAccordCadre",
     )
     return df
+
+
+#
+# ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
+#
 
 
 def setup_tableschema_columns(df: pl.DataFrame):
