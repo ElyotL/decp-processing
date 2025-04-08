@@ -1,5 +1,7 @@
 import polars as pl
 
+from tasks.output import save_to_sqlite
+
 
 def explode_titulaires(df: pl.DataFrame):
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
@@ -26,7 +28,7 @@ def explode_titulaires(df: pl.DataFrame):
     df = df.select(
         pl.col("*"),
         pl.col("titulaires.object")
-        .struct.rename_fields(["titulaire.id", "titulaire.typeId"])
+        .struct.rename_fields(["titulaire.typeIdentifiant", "titulaire.id"])
         .alias("titulaire"),
     )
 
@@ -42,6 +44,60 @@ def explode_titulaires(df: pl.DataFrame):
     return df
 
 
+def normalize_tables(df):
+    # MARCHES
+
+    df_marches: pl.DataFrame = pl.DataFrame(df.to_arrow()).drop(
+        "titulaire.id", "titulaire.typeIdentifiant"
+    )
+    df_marches = df_marches.unique("uid")
+    save_to_sqlite(df_marches, "datalab", "marches")
+    del df_marches
+
+    # ACHETEURS
+
+    df_acheteurs: pl.DataFrame = pl.DataFrame(df.to_arrow()).select("acheteur.id")
+    df_acheteurs = df_acheteurs.unique()
+    save_to_sqlite(df_acheteurs, "datalab", "acheteurs")
+    del df_acheteurs
+
+    # TITULAIRES
+
+    ## Table entreprises
+    df_titulaires: pl.DataFrame = pl.DataFrame(df.to_arrow()).select(
+        "titulaire.id", "titulaire.typeIdentifiant"
+    )
+    identifier_types = (
+        df_titulaires.select(pl.col("titulaire.typeIdentifiant").unique())
+        .to_series()
+        .to_list()
+    )
+
+    ### Pivot du dataframe pour avoir
+    df_titulaires = df_titulaires.with_columns(
+        [
+            pl.when(pl.col("titulaire.typeIdentifiant") == id_type)
+            .then(pl.col("titulaire.id"))
+            .alias(id_type.lower())
+            for id_type in identifier_types
+        ]
+    )
+    df_titulaires = df_titulaires.drop(["titulaire.id", "titulaire.typeIdentifiant"])
+    df_titulaires = df_titulaires.unique()
+    save_to_sqlite(df_titulaires, "datalab", "entreprises")
+    del df_titulaires
+
+    ## marches_titulaires
+    df_marches_titulaires: pl.DataFrame = pl.DataFrame(df.to_arrow()).select(
+        "uid", "titulaire.id", "titulaire.typeIdentifiant"
+    )
+    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche.uid"})
+    save_to_sqlite(df_marches_titulaires, "datalab", "marches_titulaires")
+    del df_marches_titulaires
+
+    # TODO ajouter les sous-traitants quand ils seront ajoutés aux données
+
+
 def merge_decp_json(files: list) -> pl.DataFrame:
     dfs = []
     for file in files:
@@ -50,6 +106,15 @@ def merge_decp_json(files: list) -> pl.DataFrame:
 
     df = pl.concat(dfs, how="diagonal")
 
+    print("Suppression des lignes en doublon par UID (acheteur id + id)")
+    # Exemple : 20005584600014157140791205100
+    index_size_before = df.height
+    df = df.unique(
+        subset=["uid", "titulaire.id", "titulaire.typeIdentifiant"],
+        maintain_order=False,
+    )
+    print("-- ", index_size_before - df.height, " doublons supprimés")
+
     # Ordre des colonnes
     df = df.select(
         "uid",
@@ -57,7 +122,7 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "nature",
         "acheteur.id",
         "titulaire.id",
-        "titulaire.typeId",
+        "titulaire.typeIdentifiant",
         "objet",
         "montant",
         "codeCPV",

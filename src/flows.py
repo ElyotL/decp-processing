@@ -4,11 +4,14 @@ from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
 import json
+from sqlalchemy import create_engine
+import polars as pl
+
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
-from tasks.transform import merge_decp_json
-from tasks.output import *
+from tasks.transform import merge_decp_json, normalize_tables
+from tasks.output import save_to_files, save_to_sqlite
 from tasks.setup import *
 from tasks.publish import publish_to_datagouv
 
@@ -58,9 +61,14 @@ def make_datalab_data():
     save_to_files(df, "dist/decp")
     save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
 
+    print("Normalisation des tables...")
+    normalize_tables(df)
+
     if os.environ["DECP_PROCESSING_PUBLISH"]:
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv()
+    else:
+        print("Publication sur data.gouv.fr désactivée.")
 
 
 @flow(log_prints=True)
