@@ -63,7 +63,7 @@ def make_datalab_data():
     save_to_files(df, "dist/decp")
     save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
 
-    if os.getenv("DEBUG", "False").lower() == "true":
+    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv()
 
