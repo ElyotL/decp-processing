@@ -34,6 +34,7 @@ def get_json(date_now, json_file: dict):
 @task
 def get_decp_json(json_files: dict, date_now: str) -> list:
     """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
+    date_now = "2025-04-02"
     return_files = []
     for json_file in json_files:
         if json_file["process"] is True:

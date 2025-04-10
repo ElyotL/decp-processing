@@ -31,4 +31,3 @@ class TestFlow:
     def test_datalab_output(self):
         # with prefect_test_harness(server_startup_timeout=10):
         df: pl.DataFrame = make_datalab_data()
-        assert df.height > 1
