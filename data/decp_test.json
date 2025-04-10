@@ -9,6 +9,8 @@
         "nature": "Marché",
         "objet": "Eléctricité courant fort/courant faible lot no4",
         "codeCPV": "45316110-9",
+        "attributionAvance": true,
+        "tauxAvance": 0.1,
         "procedure": "Appel d'offres ouvert",
         "lieuExecution": {
           "code": "97430",
@@ -22,6 +24,8 @@
         "offresRecues": 0,
         "ccag": "Fournitures courantes et services",
         "typeGroupementOperateurs": "Pas de groupement",
+        "sousTraitanceDeclaree": true,
+        "idAccordCadre": "2023-122455T",
         "titulaires": [
           {
             "titulaire": {
