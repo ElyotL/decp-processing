@@ -48,7 +48,7 @@ def get_clean_merge():
     return df
 
 
-@flow(log_prints=True)
+@flow
 def make_datalab_data():
     """Tâches consacrées à la transformation des données dans un format
     adapté aux activités du Datalab d'Anticor."""
@@ -77,10 +77,10 @@ def make_decpinfo_data():
     df: pl.LazyFrame = get_clean_merge()
 
     print("Concaténation et explosion des titulaires, un par ligne...")
-    df = explode_titulaires(df)
+    # df = explode_titulaires(df)
 
     # print("Ajout des colonnes manquantes...")
-    df = setup_tableschema_columns(df)
+    # df = setup_tableschema_columns(df)
 
     # Ajout des données de la base SIRENE
     df = enrich_from_sirene(df)
@@ -103,6 +103,13 @@ def make_decpinfo_data():
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
 
     return df
+
+
+@flow(log_prints=True)
+def decp_processing():
+    make_datalab_data()
+
+    # make_decpinfo_data()
 
 
 @task(log_prints=True)
@@ -168,16 +175,14 @@ def enrich_from_sirene(df):
 
 
 if __name__ == "__main__":
-    make_datalab_data()
-
-    # On verra les deployments quand la base marchera
-    #
-    # decp_processing.serve(
-    #     name="decp-processing-cron",
-    #     cron="0 6 * * 1-5",
-    #     description="Téléchargement, traitement, et publication des DECP.",
-    # )
-    # decp_processing.serve(
-    #     name="decp-processing-once",
-    #     description="Téléchargement, traitement, et publication des DECP.",
-    # )
+    decp_processing.serve(
+        name="decp-processing-cron",
+        cron="0 6 * * 1-5",
+        description="Téléchargement, traitement, et publication des DECP.",
+        concurrency_limit="1",
+        pause_on_shutdown=False,
+    )
+    decp_processing.serve(
+        name="decp-processing-once",
+        description="Téléchargement, traitement, et publication des DECP.",
+    )
