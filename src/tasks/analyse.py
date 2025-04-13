@@ -35,14 +35,14 @@ def list_data_issues(df: pl.LazyFrame):
 def generate_stats(df: pl.DataFrame):
     now = datetime.now()
 
-    df_titulaires = pl.DataFrame(columns=["titulaire.id", "titulaire.typeIdentifiant"])
+    df_titulaires = pl.DataFrame(columns=["titulaire_id", "titulaire_typeIdentifiant"])
 
     for i in range(1, 4):
         df_temp = df[[f"titulaire_id_{i}", f"titulaire_typeIdentifiant_{i}"]]
         df_temp = df_temp.rename(
             columns={
-                f"titulaire_id_{i}": "titulaire.id",
-                f"titulaire_typeIdentifiant_{i}": "titulaire.typeIdentifiant",
+                f"titulaire_id_{i}": "titulaire_id",
+                f"titulaire_typeIdentifiant_{i}": "titulaire_typeIdentifiant",
             }
         )
         df_titulaires = pl.concat([df_titulaires, df_temp], ignore_index=True)
@@ -57,8 +57,8 @@ def generate_stats(df: pl.DataFrame):
             "dataset": "decp-augmente-minef",
             "nb_lignes": df.index.size,
             "nb_colonnes": len(df.columns),
-            "nb_marches": df[["id", "acheteur.id"]].drop_duplicates().index.size,
-            "nb_acheteurs_uniques": df[["acheteur.id"]].drop_duplicates().index.size
+            "nb_marches": df[["id", "acheteur_id"]].drop_duplicates().index.size,
+            "nb_acheteurs_uniques": df[["acheteur_id"]].drop_duplicates().index.size
             - 1,  # -1 pour ne pas compter la valeur "acheteur vide"
             "nb_titulaires_uniques": df_titulaires.drop_duplicates().index.size
             - 1,  # -1 pour ne pas compter la valeur "titulaire vide"
@@ -79,7 +79,7 @@ def generate_stats(df: pl.DataFrame):
     ]
 
     # df_per_source = (
-    #     df[["id", "acheteur.id", "source"]].drop_duplicates().groupby(by="source").count()
+    #     df[["id", "acheteur_id", "source"]].drop_duplicates().groupby(by="source").count()
     # )
 
     # for idx in df_per_source.index:

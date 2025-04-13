@@ -37,7 +37,7 @@ Vous pouvez...
 Je vous recommande d'utiliser un environnement virtuel Python pour isoler l'installation des dépendances :
 
 ```bash
-virtualenv .venv
+python -m venv .venv
 ```
 
 Activez l'environnement virtuel :

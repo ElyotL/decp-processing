@@ -20,11 +20,11 @@ def clean_decp_json(files: list):
 
         # Colonnes exclues pour l'instant
         # df = df.rename({
-        #     "typesPrix.typePrix": "typesPrix",
-        #     "considerationsEnvironnementales.considerationEnvironnementale": "considerationsEnvironnementales",
-        #     "considerationsSociales.considerationSociale": "considerationsSociales",
-        #     "techniques.technique": "techniques",
-        #     "modalitesExecution.modaliteExecution": "modalitesExecution"
+        #     "typesPrix_typePrix": "typesPrix",
+        #     "considerationsEnvironnementales_considerationEnvironnementale": "considerationsEnvironnementales",
+        #     "considerationsSociales_considerationSociale": "considerationsSociales",
+        #     "techniques_technique": "techniques",
+        #     "modalitesExecution_modaliteExecution": "modalitesExecution"
         # })
 
         # Remplacement des valeurs nulles
@@ -34,7 +34,7 @@ def clean_decp_json(files: list):
 
         # Ajout du champ uid
         # TODO: à déplacer autre part, dans transform
-        df = df.with_columns((pl.col("acheteur.id") + pl.col("id")).alias("uid"))
+        df = df.with_columns((pl.col("acheteur_id") + pl.col("id")).alias("uid"))
 
         # Suppression des lignes en doublon par UID (acheteur id + id)
         # Exemple : 20005584600014157140791205100

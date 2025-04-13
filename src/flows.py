@@ -4,14 +4,17 @@ from prefect import flow
 from datetime import datetime
 from dotenv import load_dotenv
 import json
+import polars as pl
+import sqlite3
 import shutil
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
-from tasks.transform import merge_decp_json
-from tasks.output import *
+from tasks.transform import merge_decp_json, normalize_tables
+from tasks.output import save_to_files, save_to_sqlite
 from tasks.setup import *
 from tasks.publish import publish_to_datagouv
+
 
 # from tasks.test import *
 # from tasks.enrich import *
@@ -21,10 +24,6 @@ if not os.path.exists(".env"):
     shutil.copyfile("template.env", ".env")
 
 load_dotenv()
-
-CONNS = {}
-for db in ["datalab", "decp"]:
-    CONNS[db] = create_engine(f"sqlite:///dist/{db}.sqlite", echo=False)
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 
@@ -61,11 +60,21 @@ def make_datalab_data():
 
     print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
     save_to_files(df, "dist/decp")
-    save_to_sqlite(df, "datalab", "data.gouv.fr.2022.clean")
+    save_to_sqlite(
+        df,
+        "datalab",
+        "data.gouv.fr.2022.clean",
+        'uid, "titulaire_id", "titulaire_typeIdentifiant"',
+    )
+
+    print("Normalisation des tables...")
+    normalize_tables(df)
 
     if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv()
+    else:
+        print("Publication sur data.gouv.fr désactivée.")
 
 
 @flow(log_prints=True)
@@ -121,7 +130,7 @@ def enrich_from_sirene(df):
     # print("Ajout des données unités légales (acheteurs)...")
     # df_sirets_acheteurs = add_unite_legale_data_to_acheteurs(df_sirets_acheteurs)
 
-    # print("Construction du champ acheteur.nom à partir des données SIRENE...")
+    # print("Construction du champ acheteur_id à partir des données SIRENE...")
     # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
 
     # print("Jointure des données acheteurs enrichies avec les DECP...")
