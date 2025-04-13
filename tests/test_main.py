@@ -29,5 +29,5 @@ def prefect_test_fixture(tmp_path_factory):
 
 class TestFlow:
     def test_datalab_output(self):
-        # with prefect_test_harness(server_startup_timeout=10):
-        make_datalab_data()
+        with prefect_test_harness(server_startup_timeout=10):
+            make_datalab_data()
