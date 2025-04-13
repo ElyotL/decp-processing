@@ -49,8 +49,8 @@ def make_data_package():
     common_steps = [
         steps.field_update(name="id", descriptor={"type": "string"}),
         steps.field_update(name="uid", descriptor={"type": "string"}),
-        steps.field_update(name="acheteur.id", descriptor={"type": "string"}),
-        steps.field_update(name="acheteur.nom", descriptor={"type": "string"}),
+        steps.field_update(name="acheteur_id", descriptor={"type": "string"}),
+        steps.field_update(name="acheteur_id", descriptor={"type": "string"}),
     ]
 
     outputs = [
@@ -58,7 +58,7 @@ def make_data_package():
             "csv": "decp.csv",
             "steps": common_steps
             + [
-                steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
+                steps.field_update(name="titulaire_id", descriptor={"type": "string"}),
             ],
         },
         # {
@@ -70,7 +70,7 @@ def make_data_package():
         #     "steps": common_steps
         #     + [
         #         steps.field_update(name="departement", descriptor={"type": "string"}),
-        #         steps.field_update(name="titulaire.id", descriptor={"type": "string"}),
+        #         steps.field_update(name="titulaire_id", descriptor={"type": "string"}),
         #     ],
         # },
     ]

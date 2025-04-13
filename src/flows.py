@@ -56,7 +56,7 @@ def make_datalab_data():
         df,
         "datalab",
         "data.gouv.fr.2022.clean",
-        'uid, "titulaire.id", "titulaire.typeIdentifiant"',
+        'uid, "titulaire_id", "titulaire_typeIdentifiant"',
     )
 
     print("Normalisation des tables...")
@@ -122,7 +122,7 @@ def enrich_from_sirene(df):
     # print("Ajout des données unités légales (acheteurs)...")
     # df_sirets_acheteurs = add_unite_legale_data_to_acheteurs(df_sirets_acheteurs)
 
-    # print("Construction du champ acheteur.nom à partir des données SIRENE...")
+    # print("Construction du champ acheteur_id à partir des données SIRENE...")
     # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
 
     # print("Jointure des données acheteurs enrichies avec les DECP...")

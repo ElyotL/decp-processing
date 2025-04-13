@@ -48,6 +48,9 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 path,
                 strict=False,
                 infer_schema_length=10000,
+                separator="_",
+                # Remplacement des "." dans les noms de colonnes par des "_" car
+                # en SQL ça oblige à entourer les noms de colonnes de guillemets
             )
 
             df = df.with_columns(
@@ -59,10 +62,10 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
 
             columns_to_drop = [
                 # Pas encore incluses
-                "typesPrix.typePrix",
-                "considerationsEnvironnementales.considerationEnvironnementale",
-                "considerationsSociales.considerationSociale",
-                "techniques.technique",
+                "typesPrix_typePrix",
+                "considerationsEnvironnementales_considerationEnvironnementale",
+                "considerationsSociales_considerationSociale",
+                "techniques_technique",
                 "modalitesExecution.modaliteExecution",
                 "modifications",
                 "actesSousTraitance",

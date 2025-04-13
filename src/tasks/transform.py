@@ -28,7 +28,7 @@ def explode_titulaires(df: pl.DataFrame):
     df = df.select(
         pl.col("*"),
         pl.col("titulaires.object")
-        .struct.rename_fields(["titulaire.typeIdentifiant", "titulaire.id"])
+        .struct.rename_fields(["titulaire_typeIdentifiant", "titulaire_id"])
         .alias("titulaire"),
     )
 
@@ -39,7 +39,7 @@ def explode_titulaires(df: pl.DataFrame):
     df = df.drop(["titulaires", "titulaires.object"])
 
     # Cast l'identifiant en string
-    df = df.with_columns(pl.col("titulaire.id").cast(pl.String))
+    df = df.with_columns(pl.col("titulaire_id").cast(pl.String))
 
     return df
 
@@ -48,7 +48,7 @@ def normalize_tables(df):
     # MARCHES
 
     df_marches: pl.DataFrame = pl.DataFrame(df.to_arrow()).drop(
-        "titulaire.id", "titulaire.typeIdentifiant"
+        "titulaire_id", "titulaire_typeIdentifiant"
     )
     df_marches = df_marches.unique("uid").sort(
         by="datePublicationDonnees", descending=True
@@ -58,8 +58,8 @@ def normalize_tables(df):
 
     # ACHETEURS
 
-    df_acheteurs: pl.DataFrame = df.select("acheteur.id")
-    df_acheteurs = df_acheteurs.rename({"acheteur.id": "id"})
+    df_acheteurs: pl.DataFrame = df.select("acheteur_id")
+    df_acheteurs = df_acheteurs.rename({"acheteur_id": "id"})
     df_acheteurs = df_acheteurs.unique().sort(by="id")
     save_to_sqlite(df_acheteurs, "datalab", "acheteurs", "id")
     del df_acheteurs
@@ -67,11 +67,11 @@ def normalize_tables(df):
     # TITULAIRES
 
     ## Table entreprises
-    df_titulaires: pl.DataFrame = df.select("titulaire.id", "titulaire.typeIdentifiant")
+    df_titulaires: pl.DataFrame = df.select("titulaire_id", "titulaire_typeIdentifiant")
 
     ### On garde les champs id et typeIdentifiant en clé primaire composite
     df_titulaires = df_titulaires.rename(
-        {"titulaire.id": "id", "titulaire.typeIdentifiant": "typeIdentifiant"}
+        {"titulaire_id": "id", "titulaire_typeIdentifiant": "typeIdentifiant"}
     )
     df_titulaires = df_titulaires.unique().sort(by=["id"])
     save_to_sqlite(df_titulaires, "datalab", "entreprises", "id, typeIdentifiant")
@@ -79,14 +79,14 @@ def normalize_tables(df):
 
     ## Table marches_titulaires
     df_marches_titulaires: pl.DataFrame = df.select(
-        "uid", "titulaire.id", "titulaire.typeIdentifiant"
+        "uid", "titulaire_id", "titulaire_typeIdentifiant"
     )
     df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche.uid"})
     save_to_sqlite(
         df_marches_titulaires,
         "datalab",
         "marches_titulaires",
-        '"marche.uid", "titulaire.id", "titulaire.typeIdentifiant"',
+        '"marche.uid", "titulaire_id", "titulaire_typeIdentifiant"',
     )
     del df_marches_titulaires
 
@@ -105,7 +105,7 @@ def merge_decp_json(files: list) -> pl.DataFrame:
     # Exemple : 20005584600014157140791205100
     index_size_before = df.height
     df = df.unique(
-        subset=["uid", "titulaire.id", "titulaire.typeIdentifiant"],
+        subset=["uid", "titulaire_id", "titulaire_typeIdentifiant"],
         maintain_order=False,
     )
     print("-- ", index_size_before - df.height, " doublons supprimés")
@@ -115,9 +115,9 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "uid",
         "id",
         "nature",
-        "acheteur.id",
-        "titulaire.id",
-        "titulaire.typeIdentifiant",
+        "acheteur_id",
+        "titulaire_id",
+        "titulaire_typeIdentifiant",
         "objet",
         "montant",
         "codeCPV",
@@ -135,8 +135,8 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "tauxAvance",
         "origineUE",
         "origineFrance",
-        "lieuExecution.code",
-        "lieuExecution.typeCode",
+        "lieuExecution_code",
+        "lieuExecution_typeCode",
         "idAccordCadre",
     )
     return df
@@ -165,8 +165,8 @@ def setup_tableschema_columns(df: pl.DataFrame):
 def make_decp_sans_titulaires(df: pl.DataFrame):
     df_decp_sans_titulaires = df.drop(
         columns=[
-            "titulaire.id",
-            "titulaire.typeIdentifiant",
+            "titulaire_id",
+            "titulaire_typeIdentifiant",
         ]
     )
     df_decp_sans_titulaires = df_decp_sans_titulaires.drop_duplicates()
@@ -175,9 +175,9 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
 
 def extract_unique_acheteurs_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
-    decp_acheteurs_df = df[["acheteur.id"]]
+    decp_acheteurs_df = df[["acheteur_id"]]
     decp_acheteurs_df = decp_acheteurs_df.drop_duplicates().loc[
-        decp_acheteurs_df["acheteur.id"] != ""
+        decp_acheteurs_df["acheteur_id"] != ""
     ]
     print(f"{decp_acheteurs_df.index.size} acheteurs uniques")
 
@@ -186,11 +186,11 @@ def extract_unique_acheteurs_siret(df: pl.DataFrame):
 
 def extract_unique_titulaires_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
-    df_sirets_titulaires = df[["titulaire.id", "titulaire.typeIdentifiant"]]
+    df_sirets_titulaires = df[["titulaire_id", "titulaire_typeIdentifiant"]]
 
     df_sirets_titulaires = df_sirets_titulaires.drop_duplicates()
     df_sirets_titulaires = df_sirets_titulaires[
-        df_sirets_titulaires["titulaire.typeIdentifiant"] == "SIRET"
+        df_sirets_titulaires["titulaire_typeIdentifiant"] == "SIRET"
     ]
     print(f"{len(df_sirets_titulaires)} titulaires uniques")
 
@@ -198,7 +198,7 @@ def extract_unique_titulaires_siret(df: pl.DataFrame):
 
 
 def make_acheteur_nom(decp_acheteurs_df: pl.DataFrame):
-    # Construction du champ acheteur.nom
+    # Construction du champ acheteur_id
 
     from numpy import nan as NaN
 
@@ -208,9 +208,9 @@ def make_acheteur_nom(decp_acheteurs_df: pl.DataFrame):
         else:
             return f'{row["denominationUniteLegale"]} - {row["enseigne1Etablissement"]}'
 
-    decp_acheteurs_df["acheteur.nom"] = decp_acheteurs_df.apply(construct_nom, axis=1)
+    decp_acheteurs_df["acheteur_id"] = decp_acheteurs_df.apply(construct_nom, axis=1)
 
-    # TODO: ne garder que les colonnes acheteur.id et acheteur.nom
+    # TODO: ne garder que les colonnes acheteur_id et acheteur_id
 
     return decp_acheteurs_df
 
