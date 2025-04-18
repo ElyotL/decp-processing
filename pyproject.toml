@@ -12,7 +12,7 @@ dependencies = [
     "polars",
     "pyarrow",
     "tableschema",
-    "frictionless",
+    "frictionless==4.1",
     "datapackage-to-datasette",
     "ipykernel",
     "prefect",

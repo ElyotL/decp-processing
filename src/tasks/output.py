@@ -3,10 +3,13 @@ import os
 import sqlite3
 
 
-def save_to_files(df: pl.DataFrame, path: str):
-    # Le format CSV ne supporte pas les données "nested", donc problématique pour les données "get"
-    # df.write_csv(f"{path}.csv")
-    df.write_parquet(f"{path}.parquet")
+def save_to_files(df: pl.DataFrame, path: str, file_format=None):
+    if file_format is None:
+        file_format = ["csv", "parquet"]
+    if "csv" in file_format:
+        df.write_csv(f"{path}.csv")
+    if "parquet" in file_format:
+        df.write_parquet(f"{path}.parquet")
 
 
 def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key: str):
@@ -50,7 +53,6 @@ def make_data_package():
         steps.field_update(name="id", descriptor={"type": "string"}),
         steps.field_update(name="uid", descriptor={"type": "string"}),
         steps.field_update(name="acheteur_id", descriptor={"type": "string"}),
-        steps.field_update(name="acheteur_id", descriptor={"type": "string"}),
     ]
 
     outputs = [
@@ -61,10 +63,10 @@ def make_data_package():
                 steps.field_update(name="titulaire_id", descriptor={"type": "string"}),
             ],
         },
-        # {
-        #     "csv": "decp-sans-titulaires.csv",
-        #     "steps": common_steps,
-        # },
+        {
+            "csv": "decp-sans-titulaires.csv",
+            "steps": common_steps,
+        },
         # {
         #     "csv": "decp-titulaires.csv",
         #     "steps": common_steps
@@ -88,7 +90,7 @@ def make_data_package():
     Package(
         name="decp",
         title="DECP tabulaire",
-        description="Données essentielles de la commande publique (FR) au format tabulaire.",
+        description="Données essentielles de la commande publique (FR) au format tabulaire v2.",
         resources=resources,
         # it's possible to provide all the official properties like homepage, version, etc
     ).to_json("datapackage.json")

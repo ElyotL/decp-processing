@@ -2,6 +2,8 @@ from httpx import post
 import json
 from os import getenv
 
+from jedi.api import project
+
 
 def update_resource(api, dataset_id, resource_id, file_path, api_key):
     url = f"{api}/datasets/{dataset_id}/resources/{resource_id}/upload/"
@@ -12,7 +14,18 @@ def update_resource(api, dataset_id, resource_id, file_path, api_key):
     return response.json()
 
 
-def publish_to_datagouv():
+def publish_to_datagouv(context: str):
+    files = {
+        "datalab": [
+            "datalab.sqlite",
+        ],
+        "decp.info": [
+            "decp-sans-titulaires.parquet",
+            "decp-sans-titulaires.csv",
+            "datapackage.json",
+            "decp.sqlite",
+        ],
+    }
     api_key = getenv("DATAGOUVFR_API_KEY")
     api = "https://www.data.gouv.fr/api/1"
     dataset_id = "608c055b35eb4e6ee20eb325"
@@ -22,6 +35,7 @@ def publish_to_datagouv():
         {
             "file": "dist/decp.parquet",
             "resource_id": "11cea8e8-df3e-4ed1-932b-781e2635e432",
+            "context": context,
         },
         # {
         #     "file": "dist/decp-titulaires.csv",
@@ -31,30 +45,42 @@ def publish_to_datagouv():
         #     "file": "dist/decp-titulaires.parquet",
         #     "resource_id": "ed8cbf31-2b86-4afc-9696-3c0d7eae5c64",
         # },
-        # {
-        #     "file": "dist/decp-sans-titulaires.csv",
-        #     "resource_id": "834c14dd-037c-4825-958d-0a841c4777ae",
-        # },
-        # {
-        #     "file": "dist/decp-sans-titulaires.parquet",
-        #     "resource_id": "df28fa7d-2d36-439b-943a-351bde02f01d",
-        # },
+        {
+            "file": "dist/decp-sans-titulaires.csv",
+            "resource_id": "834c14dd-037c-4825-958d-0a841c4777ae",
+            "context": "decp",
+        },
+        {
+            "file": "dist/decp-sans-titulaires.parquet",
+            "resource_id": "df28fa7d-2d36-439b-943a-351bde02f01d",
+            "context": "decp",
+        },
         {
             "file": "dist/datalab.sqlite",
             "resource_id": "43f54982-da60-4eb7-aaaf-ba935396209b",
+            "context": "datalab",
         },
-        # {"file": "dist/decp.sqlite", "resource_id": "c6b08d03-7aa4-4132-b5b2-fd76633feecc"},
-        # {"file": "dist/datapackage.json", "resource_id": "65194f6f-e273-4067-8075-56f072d56baf"},
+        {
+            "file": "dist/decp.sqlite",
+            "resource_id": "c6b08d03-7aa4-4132-b5b2-fd76633feecc",
+            "context": "decp",
+        },
+        {
+            "file": "dist/datapackage.json",
+            "resource_id": "65194f6f-e273-4067-8075-56f072d56baf",
+            "context": "decp",
+        },
         # {"file": "dist/statistiques.csv", "resource_id": "8ded94de-3b80-4840-a5bb-7faad1c9c234"},
     ]
 
     for upload in uploads:
         print(f"Mise à jour de {upload['file']}...")
-        print(
-            json.dumps(
-                update_resource(
-                    api, dataset_id, upload["resource_id"], upload["file"], api_key
-                ),
-                indent=4,
+        if context == upload["context"]:
+            print(
+                json.dumps(
+                    update_resource(
+                        api, dataset_id, upload["resource_id"], upload["file"], api_key
+                    ),
+                    indent=4,
+                )
             )
-        )

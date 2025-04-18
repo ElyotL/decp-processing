@@ -1,4 +1,5 @@
 import polars as pl
+from httpx import get
 
 from tasks.output import save_to_sqlite
 
@@ -138,39 +139,45 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "lieuExecution_code",
         "lieuExecution_typeCode",
         "idAccordCadre",
+        "source",
     )
     return df
 
 
-#
-# ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
-#
-
-
 def setup_tableschema_columns(df: pl.DataFrame):
     # Ajout colonnes manquantes
+    print(df.columns)
+    df = df.with_columns(pl.lit("").alias("acheteur_nom"))  # TODO
+    df = df.with_columns(pl.lit("").alias("titulaire_denominationSociale"))  # TODO
+    df = df.with_columns(pl.lit("").alias("lieuExecution_nom"))  # TODO
+    df = df.with_columns(pl.lit("").alias("objetModification"))  # TODO
+    df = df.with_columns(pl.lit("").alias("donneesActuelles"))  # TODO
+    df = df.with_columns(pl.lit("").alias("anomalies"))  # TODO
 
-    df["donneesActuelles"] = ""  # TODO
-    df["anomalies"] = ""  # TODO
-
-    df_example_tableschema = pl.read_csv(
-        "https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/main/exemples/exemple-valide.csv",
-        nrows=1,
-    )
-    df = df[df_example_tableschema.columns]
+    tableschema = get(
+        "https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/refs/heads/main/schema.json",
+        follow_redirects=True,
+    ).json()
+    fields = [field["name"] for field in tableschema["fields"]]
+    df = df.select(fields)
 
     return df
 
 
 def make_decp_sans_titulaires(df: pl.DataFrame):
     df_decp_sans_titulaires = df.drop(
-        columns=[
+        [
             "titulaire_id",
             "titulaire_typeIdentifiant",
         ]
     )
-    df_decp_sans_titulaires = df_decp_sans_titulaires.drop_duplicates()
+    df_decp_sans_titulaires = df_decp_sans_titulaires.unique()
     return df_decp_sans_titulaires
+
+
+#
+# ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
+#
 
 
 def extract_unique_acheteurs_siret(df: pl.DataFrame):

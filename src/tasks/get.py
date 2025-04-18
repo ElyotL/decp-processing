@@ -37,7 +37,8 @@ def get_json_metadata(json_file: dict) -> dict:
     """Téléchargement des métadonnées d'une ressoure (fichier)."""
     resource_id = json_file["url"].split("/")[-1]
     api_url = f"http://www.data.gouv.fr/api/1/datasets/5cd57bf68b4c4179299eb0e9/resources/{resource_id}/"
-    return get(api_url, follow_redirects=True).json()
+    json_metadata = get(api_url, follow_redirects=True).json()
+    return json_metadata
 
 
 @task
@@ -46,9 +47,21 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
     return_files = []
     artefact = []
     for json_file in json_files:
+        artifact_row = {}
         if json_file["process"] is True:
             decp_json_file: Path = get_json(date_now, json_file)
-            decp_json_metadata = get_json_metadata(json_file)
+
+            if json_file["url"].startswith("https"):
+                decp_json_metadata = get_json_metadata(json_file)
+                artifact_row = {
+                    "open_data_filename": decp_json_metadata["title"],
+                    "open_data_id": decp_json_metadata["id"],
+                    "sha1": decp_json_metadata["checksum"]["value"],
+                    "created_at": decp_json_metadata["created_at"],
+                    "last_modified": decp_json_metadata["last_modified"],
+                    "filesize": decp_json_metadata["filesize"],
+                    "views": decp_json_metadata["metrics"]["views"],
+                }
 
             with open(decp_json_file, encoding="utf8") as f:
                 decp_json = json.load(f)
@@ -63,27 +76,20 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 separator="_",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets
-
             )
 
-            artifact_row = {
-                "open_data_dataset": "data.gouv.fr JSON",
-                "open_data_filename": decp_json_metadata["title"],
-                "open_data_id": decp_json_metadata["id"],
-                "download_date": date_now,
-                "sha1": decp_json_metadata["checksum"]["value"],
-                "created_at": decp_json_metadata["created_at"],
-                "last_modified": decp_json_metadata["last_modified"],
-                "filesize": decp_json_metadata["filesize"],
-                "views": decp_json_metadata["metrics"]["views"],
-                "column_number": len(df.columns),
-                "row_number": df.height,
-            }
+            artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
+            artifact_row["download_date"] = date_now
+            artifact_row["column_number"] = len(df.columns)
+            artifact_row["row_number"] = df.height
+
             artefact.append(artifact_row)
 
             df = df.with_columns(
                 pl.lit(f"data.gouv.fr {filename}.json").alias("source_open_data")
             )
+
+            print(df.columns)
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
             # ou une eval à part titulaires
@@ -97,7 +103,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "modalitesExecution.modaliteExecution",
                 "modifications",
                 "actesSousTraitance",
-                "modificationsActesSousTraitance",
+                "modificationsActe sSousTraitance",
                 # Champs de concessions
                 "_type",  # Marché ou Contrat de concession
                 "autoriteConcedante",
@@ -126,7 +132,7 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
             file = f"dist/get/{filename}_{date_now}"
             if not os.path.exists("dist/get"):
                 os.mkdir("dist/get")
-            save_to_files(df, file)
+            save_to_files(df, file, ["parquet"])
 
             return_files.append(file)
 

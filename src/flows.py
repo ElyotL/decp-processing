@@ -10,13 +10,23 @@ import shutil
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json, fix_data_types
-from tasks.transform import merge_decp_json, normalize_tables
-from tasks.output import save_to_files, save_to_sqlite
+from tasks.transform import (
+    merge_decp_json,
+    normalize_tables,
+    explode_titulaires,
+    setup_tableschema_columns,
+    make_decp_sans_titulaires,
+)
+from tasks.output import (
+    save_to_files,
+    save_to_sqlite,
+    make_data_package,
+    make_sqllite_and_datasette_metadata,
+)
 from tasks.setup import *
 from tasks.publish import publish_to_datagouv
+from tasks.test import validate_decp_against_tableschema
 
-
-# from tasks.test import *
 # from tasks.enrich import *
 
 if not os.path.exists(".env"):
@@ -44,6 +54,9 @@ def get_clean_merge():
 
     print("Taille après merge: ", df.shape)
 
+    print("Enregistrement des DECP aux formats CSV, Parquet...")
+    save_to_files(df, "dist/decp")
+
     return df
 
 
@@ -58,8 +71,7 @@ def make_datalab_data():
     # Récupération, fusion et nettoyage des données
     df: pl.DataFrame = get_clean_merge()
 
-    print("Enregistrement des DECP aux formats CSV, Parquet et SQLite...")
-    save_to_files(df, "dist/decp")
+    print("Enregistrement des DECP aux formats SQLite...")
     save_to_sqlite(
         df,
         "datalab",
@@ -82,32 +94,32 @@ def make_decpinfo_data():
     # Tâches consacrées à la transformation des données dans un format
     # adapté à decp.info (datasette)
 
-    # Récupération des données
-    df: pl.LazyFrame = get_clean_merge()
+    # Récupération nettoyage et fusion des données
+    df: pl.DataFrame = get_clean_merge()
 
-    print("Concaténation et explosion des titulaires, un par ligne...")
-    df = explode_titulaires(df)
+    # DECP sans titulaires
+    save_to_files(make_decp_sans_titulaires(df), "dist/decp-sans-titulaires")
 
     # print("Ajout des colonnes manquantes...")
     df = setup_tableschema_columns(df)
 
     # Ajout des données de la base SIRENE
-    df = enrich_from_sirene(df)
+    # df = enrich_from_sirene(df)
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
 
-    # if not (os.curdir.endswith("dist")):
-    #     os.chdir("./dist")
-    #     print(os.curdir)
-    #
-    # print("Validation des données DECP avec le TableSchema...")
-    # validate_decp_against_tableschema()
-    #
-    # print("Création du data package (JSON)....")
-    # make_data_package()
-    #
-    # print("Création de la DB SQLite et des métadonnées datasette...")
-    # make_sqllite_and_datasette_metadata()
+    if not (os.curdir.endswith("dist")):
+        os.chdir("./dist")
+        print(os.curdir)
+
+    print("Validation des données DECP avec le TableSchema...")
+    validate_decp_against_tableschema()
+
+    print("Création du data package (JSON)....")
+    make_data_package()
+
+    print("Création de la DB SQLite et des métadonnées datasette...")
+    make_sqllite_and_datasette_metadata()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
 

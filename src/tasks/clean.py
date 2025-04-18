@@ -81,7 +81,7 @@ def clean_decp_json(files: list):
             os.mkdir("dist/clean")
 
         df = df.collect()
-        save_to_files(df, file)
+        save_to_files(df, file, ["parquet"])
 
     return return_files
 

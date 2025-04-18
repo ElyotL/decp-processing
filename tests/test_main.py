@@ -1,6 +1,5 @@
 from prefect.testing.utilities import prefect_test_harness
-from flows import make_datalab_data
-import polars as pl
+from flows import make_datalab_data, make_decpinfo_data
 import pytest
 import logging
 import os
@@ -31,3 +30,7 @@ class TestFlow:
     def test_datalab_output(self):
         with prefect_test_harness(server_startup_timeout=10):
             make_datalab_data()
+
+    def test_decpinfo_output(self):
+        with prefect_test_harness(server_startup_timeout=10):
+            make_decpinfo_data()
