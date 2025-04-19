@@ -1,5 +1,3 @@
-from os import getenv
-
 from prefect import flow, task
 from datetime import datetime
 from dotenv import load_dotenv
@@ -24,8 +22,6 @@ from tasks.output import (
 from tasks.setup import initialization
 from tasks.publish import publish_to_datagouv
 from tasks.test import validate_decp_against_tableschema
-
-# from tasks.enrich import *
 
 if not os.path.exists(".env"):
     print("Création du fichier .env à partir de template.env")
