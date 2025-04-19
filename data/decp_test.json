@@ -90,7 +90,6 @@
       "datePublicationDonnees": "2024-10-03"
     }
   }],
-        "source": "data.gouv.fr_pes_2024",
         "modifications": [
           {
             "modification": {
@@ -160,7 +159,6 @@
           ]
         },
         "actesSousTraitance": null,
-        "source": "data.gouv.fr_pes_2024",
         "modifications": [
           {
             "modification": {

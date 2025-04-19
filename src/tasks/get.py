@@ -89,8 +89,6 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 pl.lit(f"data.gouv.fr {filename}.json").alias("source_open_data")
             )
 
-            print(df.columns)
-
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
             # ou une eval à part titulaires
 

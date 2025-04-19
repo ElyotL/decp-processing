@@ -139,7 +139,6 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         "lieuExecution_code",
         "lieuExecution_typeCode",
         "idAccordCadre",
-        "source",
     )
     return df
 
