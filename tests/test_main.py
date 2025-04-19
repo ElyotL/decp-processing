@@ -20,7 +20,6 @@ def prefect_test_fixture(tmp_path_factory):
         for lgr in loggers_to_cleanup:
             for handler in lgr.handlers[:]:
                 if "prefect" in str(handler).lower():
-                    print(f"Flushing Prefect handler: {handler}")
                     handler.flush()
                     handler.close()
                 lgr.removeHandler(handler)
