@@ -82,12 +82,12 @@ def normalize_tables(df):
     df_marches_titulaires: pl.DataFrame = df.select(
         "uid", "titulaire_id", "titulaire_typeIdentifiant"
     )
-    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche.uid"})
+    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche_uid"})
     save_to_sqlite(
         df_marches_titulaires,
         "datalab",
         "marches_titulaires",
-        '"marche.uid", "titulaire_id", "titulaire_typeIdentifiant"',
+        '"marche_uid", "titulaire_id", "titulaire_typeIdentifiant"',
     )
     del df_marches_titulaires
 

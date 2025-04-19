@@ -98,10 +98,10 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "considerationsEnvironnementales_considerationEnvironnementale",
                 "considerationsSociales_considerationSociale",
                 "techniques_technique",
-                "modalitesExecution.modaliteExecution",
+                "modalitesExecution_modaliteExecution",
                 "modifications",
                 "actesSousTraitance",
-                "modificationsActe sSousTraitance",
+                "modificationsActesSousTraitance",
                 # Champs de concessions
                 "_type",  # Marché ou Contrat de concession
                 "autoriteConcedante",
