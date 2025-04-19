@@ -3,7 +3,7 @@ from tableschema import Table
 
 def validate_decp_against_tableschema():
     table = Table(
-        "decp.csv",
+        "dist/decp.csv",
         schema="https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/main/schema.json",
     )
 

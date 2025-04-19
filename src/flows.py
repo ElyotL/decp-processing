@@ -51,19 +51,14 @@ def get_clean_merge():
     print("Enregistrement des DECP aux formats CSV, Parquet...")
     save_to_files(df, "dist/decp")
 
-    return df
-
 
 @flow(log_prints=True)
 def make_datalab_data():
     """Tâches consacrées à la transformation des données dans un format
     adapté aux activités du Datalab d'Anticor."""
 
-    # Initialisation
-    initialization()
-
-    # Récupération, fusion et nettoyage des données
-    df: pl.DataFrame = get_clean_merge()
+    # Données nettoyées et fusionnées
+    df: pl.DataFrame = pl.read_parquet("dist/decp.parquet")
 
     print("Enregistrement des DECP aux formats SQLite...")
     save_to_sqlite(
@@ -78,18 +73,18 @@ def make_datalab_data():
 
     if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
         print("Publication sur data.gouv.fr...")
-        publish_to_datagouv()
+        publish_to_datagouv("datalab")
     else:
         print("Publication sur data.gouv.fr désactivée.")
 
 
 @flow(log_prints=True)
 def make_decpinfo_data():
-    # Tâches consacrées à la transformation des données dans un format
-    # adapté à decp.info (datasette)
+    """Tâches consacrées à la transformation des données dans un format
+    # adapté à decp.info"""
 
-    # Récupération nettoyage et fusion des données
-    df: pl.DataFrame = get_clean_merge()
+    # Données nettoyées et fusionnées
+    df: pl.DataFrame = pl.read_parquet("dist/decp.parquet")
 
     # DECP sans titulaires
     save_to_files(make_decp_sans_titulaires(df), "dist/decp-sans-titulaires")
@@ -99,10 +94,6 @@ def make_decpinfo_data():
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA)
 
-    if not (os.curdir.endswith("dist")):
-        os.chdir("./dist")
-        print(os.curdir)
-
     print("Validation des données DECP avec le TableSchema...")
     validate_decp_against_tableschema()
 
@@ -110,8 +101,28 @@ def make_decpinfo_data():
     make_data_package()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
+    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
+        print("Publication sur data.gouv.fr...")
+        publish_to_datagouv("decp")
+    else:
+        print("Publication sur data.gouv.fr désactivée.")
 
     return df
+
+
+@flow(log_prints=True)
+def decp_processing():
+    # Initialisation
+    initialization()
+
+    # Récupération, fusion et nettoyage des données
+    get_clean_merge()
+
+    # Fichiers dédiés à l'Open Data et decp.info
+    make_decpinfo_data()
+
+    # Base de données SQLite dédiée aux activités du Datalab d'Anticor
+    make_datalab_data()
 
 
 @task(log_prints=True)
@@ -177,7 +188,7 @@ def enrich_from_sirene(df):
 
 
 if __name__ == "__main__":
-    make_datalab_data()
+    decp_processing()
 
     # On verra les deployments quand la base marchera
     #

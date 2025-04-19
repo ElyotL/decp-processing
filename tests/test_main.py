@@ -1,5 +1,5 @@
 from prefect.testing.utilities import prefect_test_harness
-from flows import make_datalab_data, make_decpinfo_data
+from flows import decp_processing
 import pytest
 import logging
 import os
@@ -26,10 +26,6 @@ def prefect_test_fixture(tmp_path_factory):
 
 
 class TestFlow:
-    def test_datalab_output(self):
+    def test_decp_processing(self):
         with prefect_test_harness(server_startup_timeout=10):
-            make_datalab_data()
-
-    def test_decpinfo_output(self):
-        with prefect_test_harness(server_startup_timeout=10):
-            make_decpinfo_data()
+            decp_processing()

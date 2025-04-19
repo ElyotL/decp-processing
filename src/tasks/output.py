@@ -1,5 +1,4 @@
 import polars as pl
-import os
 import sqlite3
 
 
@@ -57,18 +56,18 @@ def make_data_package():
 
     outputs = [
         {
-            "csv": "decp.csv",
+            "csv": "dist/decp.csv",
             "steps": common_steps
             + [
                 steps.field_update(name="titulaire_id", descriptor={"type": "string"}),
             ],
         },
         {
-            "csv": "decp-sans-titulaires.csv",
+            "csv": "dist/decp-sans-titulaires.csv",
             "steps": common_steps,
         },
         # {
-        #     "csv": "decp-titulaires.csv",
+        #     "csv": "dist/decp-titulaires.csv",
         #     "steps": common_steps
         #     + [
         #         steps.field_update(name="departement", descriptor={"type": "string"}),
@@ -91,4 +90,4 @@ def make_data_package():
         description="Données essentielles de la commande publique (FR) au format tabulaire v2.",
         resources=resources,
         # it's possible to provide all the official properties like homepage, version, etc
-    ).to_json("datapackage.json")
+    ).to_json("dist/datapackage.json")
