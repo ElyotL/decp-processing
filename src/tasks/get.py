@@ -119,12 +119,16 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "dureeMois_source",
             ]
 
+            absent_columns = []
             for col in columns_to_drop:
                 try:
                     df = df.drop(col)
                 except ColumnNotFoundError:
+                    absent_columns.append(col)
                     pass
 
+            if len(absent_columns) > 0:
+                print(f"{filename}: colonnes à supprimer absentes : {absent_columns}")
             print(f"[{filename}]", df.shape)
 
             file = f"dist/get/{filename}_{date_now}"
