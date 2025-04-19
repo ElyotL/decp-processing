@@ -94,17 +94,3 @@ def make_data_package():
         resources=resources,
         # it's possible to provide all the official properties like homepage, version, etc
     ).to_json("datapackage.json")
-
-
-def make_sqllite_and_datasette_metadata():
-    from datapackage_to_datasette import datapackage_to_datasette
-
-    if os.path.exists("decp.sqlite"):
-        os.remove("decp.sqlite")
-
-    datapackage_to_datasette(
-        dbname="decp.sqlite",
-        data_package="datapackage.json",
-        metadata_filename="datasette_metadata.json",
-        write_mode="replace",
-    )

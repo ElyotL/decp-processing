@@ -103,10 +103,7 @@ def make_decpinfo_data():
     # print("Ajout des colonnes manquantes...")
     df = setup_tableschema_columns(df)
 
-    # Ajout des données de la base SIRENE
-    # df = enrich_from_sirene(df)
-
-    # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA) ET DES FICHIERS DATASETTE
+    # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA)
 
     if not (os.curdir.endswith("dist")):
         os.chdir("./dist")
@@ -117,9 +114,6 @@ def make_decpinfo_data():
 
     print("Création du data package (JSON)....")
     make_data_package()
-
-    print("Création de la DB SQLite et des métadonnées datasette...")
-    make_sqllite_and_datasette_metadata()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
 
