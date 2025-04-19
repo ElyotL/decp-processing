@@ -47,7 +47,7 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
 
 
 def make_data_package():
-    from frictionless import Package, Resource, Pipeline, steps
+    from frictionless import Package, Resource, steps
 
     common_steps = [
         steps.field_update(name="id", descriptor={"type": "string"}),
@@ -83,9 +83,7 @@ def make_data_package():
         resource: Resource = Resource(path=output["csv"])
 
         # Cette méthode détecte les caractéristiques du CSV et tente de deviner les datatypes
-        resource.infer()
-        resource = resource.transform(Pipeline(steps=output["steps"]))
-        resources.append(resource)
+        resources.append(Resource.transform(steps=output["steps"], resource=resource))
 
     Package(
         name="decp",
