@@ -1,6 +1,6 @@
 import polars as pl
 from datetime import datetime
-
+from config import DIST_DIR
 from tasks.get import get_stats
 
 
@@ -92,4 +92,4 @@ def generate_stats(df: pl.DataFrame):
 
     df_stats_dgfr: pl.DataFrame = get_stats()
     df_stats_dgfr = pl.concat([df_stats_dgfr, pl.DataFrame(stats)], ignore_index=True)
-    df_stats_dgfr.to_csv("dist/statistiques.csv")
+    df_stats_dgfr.to_csv(f"{DIST_DIR}/statistiques.csv")

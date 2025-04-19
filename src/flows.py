@@ -1,10 +1,7 @@
-from prefect import flow, task
-from datetime import datetime
-from dotenv import load_dotenv
-import json
-import os
-import polars as pl
+import os.path
 import shutil
+from prefect import flow, task
+import polars as pl
 
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json
@@ -19,26 +16,19 @@ from tasks.output import (
     save_to_sqlite,
     make_data_package,
 )
-from tasks.setup import initialization
 from tasks.publish import publish_to_datagouv
 from tasks.test import validate_decp_against_tableschema
-
-if not os.path.exists(".env"):
-    print("Création du fichier .env à partir de template.env")
-    shutil.copyfile("template.env", ".env")
-
-load_dotenv()
-
-DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
-
-with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
-    DECP_JSON_FILES = json.load(f)
+from config import DECP_PROCESSING_PUBLISH, DIST_DIR
 
 
 @task(log_prints=True)
 def get_clean_merge():
+    if os.path.exists(DIST_DIR):
+        shutil.rmtree(DIST_DIR)
+    os.mkdir(DIST_DIR)
+
     print("Récupération des données source...")
-    files = get_decp_json(DECP_JSON_FILES, DATE_NOW)
+    files = get_decp_json()
 
     print("Nettoyage des données source et typage des colonnes...")
     files = clean_decp_json(files)
@@ -49,7 +39,7 @@ def get_clean_merge():
     print("Taille après merge: ", df.shape)
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
-    save_to_files(df, "dist/decp")
+    save_to_files(df, f"{DIST_DIR}/decp")
 
 
 @flow(log_prints=True)
@@ -58,20 +48,24 @@ def make_datalab_data():
     adapté aux activités du Datalab d'Anticor."""
 
     # Données nettoyées et fusionnées
-    df: pl.DataFrame = pl.read_parquet("dist/decp.parquet")
+    if not os.path.exists(f"{DIST_DIR}/decp.parquet"):
+        get_clean_merge()
+    df: pl.DataFrame = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
+
+    print(df.select("uid", "titulaire_id", "titulaire_typeIdentifiant"))
 
     print("Enregistrement des DECP aux formats SQLite...")
     save_to_sqlite(
         df,
         "datalab",
         "data.gouv.fr.2022.clean",
-        'uid, "titulaire_id", "titulaire_typeIdentifiant"',
+        "uid, titulaire_id, titulaire_typeIdentifiant",
     )
 
     print("Normalisation des tables...")
     normalize_tables(df)
 
-    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
+    if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv("datalab")
     else:
@@ -84,10 +78,12 @@ def make_decpinfo_data():
     # adapté à decp.info"""
 
     # Données nettoyées et fusionnées
-    df: pl.DataFrame = pl.read_parquet("dist/decp.parquet")
+    if not os.path.exists(f"{DIST_DIR}/decp.parquet"):
+        get_clean_merge()
+    df: pl.DataFrame = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
 
     # DECP sans titulaires
-    save_to_files(make_decp_sans_titulaires(df), "dist/decp-sans-titulaires")
+    save_to_files(make_decp_sans_titulaires(df), f"{DIST_DIR}/decp-sans-titulaires")
 
     # print("Ajout des colonnes manquantes...")
     df = setup_tableschema_columns(df)
@@ -101,7 +97,7 @@ def make_decpinfo_data():
     make_data_package()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
-    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
+    if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
         publish_to_datagouv("decp")
     else:
@@ -112,12 +108,6 @@ def make_decpinfo_data():
 
 @flow(log_prints=True)
 def decp_processing():
-    # Initialisation
-    initialization()
-
-    # Récupération, fusion et nettoyage des données
-    get_clean_merge()
-
     # Fichiers dédiés à l'Open Data et decp.info
     make_decpinfo_data()
 
@@ -149,11 +139,11 @@ def enrich_from_sirene(df):
     # del df_sirets_acheteurs
 
     # print("Enregistrement des DECP aux formats CSV et Parquet...")
-    # save_to_files(df, "dist/decp")
+    # save_to_files(df, f"{DIST_DIR}/decp")
 
     # print("Suppression de colonnes et déduplication pour les DECP Sans Titulaires...")
     # df_decp_sans_titulaires = make_decp_sans_titulaires(df)
-    # save_to_files(df_decp_sans_titulaires, "dist/decp-sans-titulaires")
+    # save_to_files(df_decp_sans_titulaires, f"{DIST_DIR}/decp-sans-titulaires")
     # del df_decp_sans_titulaires
 
     # DONNÉES SIRENE TITULAIRES
@@ -181,7 +171,7 @@ def enrich_from_sirene(df):
     # del df_sirets_titulaires
 
     # print("Enregistrement des DECP Titulaires aux formats CSV et Parquet...")
-    # save_to_files(df_decp_titulaires, "dist/decp-titulaires")
+    # save_to_files(df_decp_titulaires, f"{DIST_DIR}/decp-titulaires")
     # del df_decp_titulaires
 
     return df

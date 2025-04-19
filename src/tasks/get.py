@@ -9,6 +9,7 @@ from pathlib import Path
 
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
+from config import DIST_DIR, DECP_JSON_FILES, DATE_NOW
 
 
 @task(retries=5, retry_delay_seconds=5)
@@ -42,8 +43,12 @@ def get_json_metadata(json_file: dict) -> dict:
 
 
 @task
-def get_decp_json(json_files: dict, date_now: str) -> list:
+def get_decp_json() -> list:
     """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
+
+    json_files = DECP_JSON_FILES
+    date_now = DATE_NOW
+
     return_files = []
     artefact = []
     for json_file in json_files:
@@ -131,9 +136,9 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 print(f"{filename}: colonnes à supprimer absentes : {absent_columns}")
             print(f"[{filename}]", df.shape)
 
-            file = f"dist/get/{filename}_{date_now}"
-            if not os.path.exists("dist/get"):
-                os.mkdir("dist/get")
+            file = f"{DIST_DIR}/get/{filename}_{date_now}"
+            if not os.path.exists(f"{DIST_DIR}/get"):
+                os.mkdir(f"{DIST_DIR}/get")
             save_to_files(df, file, ["parquet"])
 
             return_files.append(file)

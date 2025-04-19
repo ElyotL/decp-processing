@@ -145,7 +145,6 @@ def merge_decp_json(files: list) -> pl.DataFrame:
 
 def setup_tableschema_columns(df: pl.DataFrame):
     # Ajout colonnes manquantes
-    print(df.columns)
     df = df.with_columns(pl.lit("").alias("acheteur_nom"))  # TODO
     df = df.with_columns(pl.lit("").alias("titulaire_denominationSociale"))  # TODO
     df = df.with_columns(pl.lit("").alias("lieuExecution_nom"))  # TODO

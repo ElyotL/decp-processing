@@ -3,6 +3,7 @@ import os
 from tasks.output import save_to_files
 from prefect import task
 from tasks.transform import explode_titulaires
+from config import DIST_DIR
 
 
 @task
@@ -75,10 +76,10 @@ def clean_decp_json(files: list):
         # Fix datatypes
         df = fix_data_types(df)
 
-        file = f"dist/clean/{file.split('/')[-1]}"
+        file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
         return_files.append(file)
-        if not os.path.exists("dist/clean"):
-            os.mkdir("dist/clean")
+        if not os.path.exists(f"{DIST_DIR}/clean"):
+            os.mkdir(f"{DIST_DIR}/clean")
 
         df = df.collect()
         save_to_files(df, file, ["parquet"])

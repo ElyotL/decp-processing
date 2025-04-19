@@ -1,6 +1,8 @@
 import polars as pl
 import sqlite3
 
+from config import DIST_DIR
+
 
 def save_to_files(df: pl.DataFrame, path: str, file_format=None):
     if file_format is None:
@@ -33,7 +35,7 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
     create_table_sql = f"CREATE TABLE \"{table_name}\" ({', '.join(column_definitions)}, {primary_key_definition})"  # Add quotes
 
     # Éxecution de la requête
-    connection = sqlite3.connect(f"dist/{database}.sqlite")
+    connection = sqlite3.connect(f"{DIST_DIR}/{database}.sqlite")
     cursor = connection.cursor()
     cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
     cursor.execute(create_table_sql)
@@ -41,7 +43,9 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
     connection.close()
 
     df.write_database(
-        f'"{table_name}"', f"sqlite:///dist/{database}.sqlite", if_table_exists="append"
+        f'"{table_name}"',
+        f"sqlite:///{DIST_DIR}/{database}.sqlite",
+        if_table_exists="append",
     )
 
 
@@ -56,18 +60,18 @@ def make_data_package():
 
     outputs = [
         {
-            "csv": "dist/decp.csv",
+            "csv": f"{DIST_DIR}/decp.csv",
             "steps": common_steps
             + [
                 steps.field_update(name="titulaire_id", descriptor={"type": "string"}),
             ],
         },
         {
-            "csv": "dist/decp-sans-titulaires.csv",
+            "csv": f"{DIST_DIR}/decp-sans-titulaires.csv",
             "steps": common_steps,
         },
         # {
-        #     "csv": "dist/decp-titulaires.csv",
+        #     "csv": f"{DIST_DIR}/decp-titulaires.csv",
         #     "steps": common_steps
         #     + [
         #         steps.field_update(name="departement", descriptor={"type": "string"}),
@@ -90,4 +94,4 @@ def make_data_package():
         description="Données essentielles de la commande publique (FR) au format tabulaire v2.",
         resources=resources,
         # it's possible to provide all the official properties like homepage, version, etc
-    ).to_json("dist/datapackage.json")
+    ).to_json(f"{DIST_DIR}/datapackage.json")
