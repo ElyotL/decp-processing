@@ -1,19 +1,18 @@
 from os import getenv
 
-from prefect import flow
+from prefect import flow, task
 from datetime import datetime
 from dotenv import load_dotenv
 import json
+import os
 import polars as pl
-import sqlite3
 import shutil
 
 from tasks.get import get_decp_json
-from tasks.clean import clean_decp_json, fix_data_types
+from tasks.clean import clean_decp_json
 from tasks.transform import (
     merge_decp_json,
     normalize_tables,
-    explode_titulaires,
     setup_tableschema_columns,
     make_decp_sans_titulaires,
 )
@@ -21,9 +20,8 @@ from tasks.output import (
     save_to_files,
     save_to_sqlite,
     make_data_package,
-    make_sqllite_and_datasette_metadata,
 )
-from tasks.setup import *
+from tasks.setup import initialization
 from tasks.publish import publish_to_datagouv
 from tasks.test import validate_decp_against_tableschema
 
