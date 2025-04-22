@@ -47,12 +47,7 @@ def make_datalab_data():
     """Tâches consacrées à la transformation des données dans un format
     adapté aux activités du Datalab d'Anticor."""
 
-    # Données nettoyées et fusionnées
-    if not os.path.exists(f"{DIST_DIR}/decp.parquet"):
-        get_clean_merge()
     df: pl.DataFrame = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
-
-    print(df.select("uid", "titulaire_id", "titulaire_typeIdentifiant"))
 
     print("Enregistrement des DECP aux formats SQLite...")
     save_to_sqlite(
@@ -77,9 +72,6 @@ def make_decpinfo_data():
     """Tâches consacrées à la transformation des données dans un format
     # adapté à decp.info"""
 
-    # Données nettoyées et fusionnées
-    if not os.path.exists(f"{DIST_DIR}/decp.parquet"):
-        get_clean_merge()
     df: pl.DataFrame = pl.read_parquet(f"{DIST_DIR}/decp.parquet")
 
     # DECP sans titulaires
@@ -108,6 +100,9 @@ def make_decpinfo_data():
 
 @flow(log_prints=True)
 def decp_processing():
+    # Données nettoyées et fusionnées
+    get_clean_merge()
+
     # Fichiers dédiés à l'Open Data et decp.info
     make_decpinfo_data()
 

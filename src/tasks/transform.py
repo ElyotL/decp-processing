@@ -102,7 +102,9 @@ def merge_decp_json(files: list) -> pl.DataFrame:
 
     df = pl.concat(dfs, how="diagonal")
 
-    print("Suppression des lignes en doublon par UID (acheteur id + id)")
+    print(
+        "Suppression des lignes en doublon par UID + titulaire ID + titulaire type ID"
+    )
     # Exemple : 20005584600014157140791205100
     index_size_before = df.height
     df = df.unique(
