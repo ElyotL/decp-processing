@@ -23,7 +23,7 @@ def publish_to_datagouv(context: str):
             "decp-sans-titulaires.parquet",
             "decp-sans-titulaires.csv",
             "datapackage.json",
-            "decp.sqlite",
+            # "decp.sqlite",
         ],
     }
     api_key = getenv("DATAGOUVFR_API_KEY")
