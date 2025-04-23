@@ -1,7 +1,11 @@
 import polars as pl
 from httpx import get
+from prefect import task
+from config import SIRENE_DATA_DIR
+import os
 
 from tasks.output import save_to_sqlite
+import zipfile
 
 
 def explode_titulaires(df: pl.DataFrame):
@@ -175,11 +179,6 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
     return df_decp_sans_titulaires
 
 
-#
-# ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
-#
-
-
 def extract_unique_acheteurs_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
     df = df.select("acheteur_id")
@@ -188,6 +187,37 @@ def extract_unique_acheteurs_siret(df: pl.DataFrame):
     print(f"{df.height} acheteurs uniques")
 
     return df
+
+
+@task
+def get_prepare_unites_legales():
+    sirene_data_dir = SIRENE_DATA_DIR
+
+    unites_legales_path = f"{sirene_data_dir}/StockUniteLegaleHistorique_utf8"
+    if not os.path.exists(f"{unites_legales_path}.zip"):
+        print("Téléchargement des unités légales...")
+        unites_legales_url = os.getenv("SIRENE_UNITES_LEGALES_URL")
+
+        request = get(unites_legales_url, follow_redirects=True)
+        with open(f"{unites_legales_path}.zip", "wb") as file:
+            file.write(request.content)
+
+    if not os.path.exists(f"{unites_legales_path}.csv"):
+        print("Décompression des unités légales...")
+        with zipfile.ZipFile(f"{unites_legales_path}.zip", "r") as zip_ref:
+            zip_ref.extractall(sirene_data_dir)
+
+    print("-- sélection des colonnes et enregistrement au format parquet...")
+    lf_ul = pl.scan_csv(f"{unites_legales_path}.csv", infer_schema=None)
+    lf_ul = lf_ul.select(["siren", "denominationUniteLegale"])
+    lf_ul.collect(engine="streaming").write_parquet(
+        f"{sirene_data_dir}/unites_legales.parquet"
+    )
+
+
+#
+# ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
+#
 
 
 def extract_unique_titulaires_siret(df: pl.DataFrame):

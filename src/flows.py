@@ -1,6 +1,6 @@
 import os.path
 import shutil
-from prefect import flow, task
+from prefect import flow, task, engine
 import polars as pl
 
 from tasks.get import get_decp_json
@@ -13,6 +13,7 @@ from tasks.transform import (
     extract_unique_titulaires_siret,
     extract_unique_acheteurs_siret,
     make_acheteur_nom,
+    get_prepare_unites_legales,
 )
 from tasks.output import (
     save_to_files,
@@ -23,11 +24,11 @@ from tasks.output import (
 from tasks.enrich import add_etablissement_data, add_unite_legale_data
 from tasks.publish import publish_to_datagouv
 from tasks.test import validate_decp_against_tableschema
-from config import DECP_PROCESSING_PUBLISH, DIST_DIR
+from config import DECP_PROCESSING_PUBLISH, DIST_DIR, SIRENE_DATA_DIR
 
 
 @task(log_prints=True)
-def get_clean_merge():
+def get_clean_concat():
     if os.path.exists(DIST_DIR):
         shutil.rmtree(DIST_DIR)
     os.mkdir(DIST_DIR)
@@ -42,6 +43,9 @@ def get_clean_merge():
     df = merge_decp_json(files)
 
     print("Taille après merge: ", df.shape)
+
+    print("Ajout des données SIRENE...")
+    df = enrich_from_sirene(df)
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
     save_to_files(df, f"{DIST_DIR}/decp")
@@ -106,7 +110,7 @@ def make_decpinfo_data():
 @flow(log_prints=True)
 def decp_processing():
     # Données nettoyées et fusionnées
-    get_clean_merge()
+    get_clean_concat()
 
     # Fichiers dédiés à l'Open Data et decp.info
     make_decpinfo_data()
@@ -119,29 +123,28 @@ def decp_processing():
 def enrich_from_sirene(df):
     # DONNÉES SIRENE ACHETEURS
 
-    # Enrichissement des données pas prioritaire
-    # cf https://github.com/ColinMaudry/decp-processing/issues/17
-
     print("Extraction des SIRET des acheteurs...")
     df_sirets_acheteurs = extract_unique_acheteurs_siret(df)
 
     # print("Ajout des données établissements (acheteurs)...")
-    df_sirets_acheteurs = add_etablissement_data(
-        df_sirets_acheteurs, ["enseigne1Etablissement"], "acheteur_id"
-    )
+    # df_sirets_acheteurs = add_etablissement_data(
+    #     df_sirets_acheteurs, ["enseigne1Etablissement"], "acheteur_id"
+    # )
 
-    # print("Ajout des données unités légales (acheteurs)...")
+    print("Ajout des données unités légales (acheteurs)...")
     df_sirets_acheteurs = add_unite_legale_data(
         df_sirets_acheteurs,
         ["denominationUniteLegale", "categorieJuridiqueUniteLegale"],
+        "acheteur_id",
     )
-
-    # print("Construction du champ acheteur_id à partir des données SIRENE...")
-    df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
-
+    df = df.collect(engine="streaming")
     print(df_sirets_acheteurs)
+    breakpoint()
 
     exit(1)
+
+    # print("Construction du champ acheteur_nom à partir des données SIRENE...")
+    # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
 
     # print("Jointure des données acheteurs enrichies avec les DECP...")
     # df = merge_sirets_acheteurs(df, df_sirets_acheteurs)
@@ -184,6 +187,20 @@ def enrich_from_sirene(df):
     # del df_decp_titulaires
 
     return df
+
+
+@flow(log_prints=True)
+def sirene_preprocess():
+    sirene_data_dir = SIRENE_DATA_DIR
+
+    if not os.path.exists(sirene_data_dir):
+        os.mkdir(sirene_data_dir)
+
+    # preparer les données établissements
+
+    # préprare les données unités légales
+    print("Prépararion des unités légales...")
+    get_prepare_unites_legales()
 
 
 if __name__ == "__main__":
