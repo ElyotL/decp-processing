@@ -182,29 +182,27 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
 
 def extract_unique_acheteurs_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
-    decp_acheteurs_df = df[["acheteur_id"]]
-    decp_acheteurs_df = decp_acheteurs_df.drop_duplicates().loc[
-        decp_acheteurs_df["acheteur_id"] != ""
-    ]
-    print(f"{decp_acheteurs_df.index.size} acheteurs uniques")
+    df = df.select("acheteur_id")
+    df = df.unique().filter(pl.col("acheteur_id") != "")
 
-    return decp_acheteurs_df
+    print(f"{df.height} acheteurs uniques")
+
+    return df
 
 
 def extract_unique_titulaires_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
-    df_sirets_titulaires = df[["titulaire_id", "titulaire_typeIdentifiant"]]
+    df = df[["titulaire_id", "titulaire_typeIdentifiant"]]
 
-    df_sirets_titulaires = df_sirets_titulaires.drop_duplicates()
-    df_sirets_titulaires = df_sirets_titulaires[
-        df_sirets_titulaires["titulaire_typeIdentifiant"] == "SIRET"
-    ]
-    print(f"{len(df_sirets_titulaires)} titulaires uniques")
+    df = df.unique()
+    df = df.filter(pl.col("titulaire_typeIdentifiant") == "SIRET")
 
-    return df_sirets_titulaires
+    print(f"{df.height} titulaires uniques")
+
+    return df
 
 
-def make_acheteur_nom(decp_acheteurs_df: pl.DataFrame):
+def make_acheteur_nom(decp_acheteurs_df: pl.LazyFrame):
     # Construction du champ acheteur_id
 
     from numpy import nan as NaN

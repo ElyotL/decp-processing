@@ -10,12 +10,17 @@ from tasks.transform import (
     normalize_tables,
     setup_tableschema_columns,
     make_decp_sans_titulaires,
+    extract_unique_titulaires_siret,
+    extract_unique_acheteurs_siret,
+    make_acheteur_nom,
 )
 from tasks.output import (
     save_to_files,
     save_to_sqlite,
     make_data_package,
 )
+
+from tasks.enrich import add_etablissement_data, add_unite_legale_data
 from tasks.publish import publish_to_datagouv
 from tasks.test import validate_decp_against_tableschema
 from config import DECP_PROCESSING_PUBLISH, DIST_DIR
@@ -117,17 +122,26 @@ def enrich_from_sirene(df):
     # Enrichissement des données pas prioritaire
     # cf https://github.com/ColinMaudry/decp-processing/issues/17
 
-    # print("Extraction des SIRET des acheteurs...")
-    # df_sirets_acheteurs = extract_unique_acheteurs_siret(df)
+    print("Extraction des SIRET des acheteurs...")
+    df_sirets_acheteurs = extract_unique_acheteurs_siret(df)
 
     # print("Ajout des données établissements (acheteurs)...")
-    # df_sirets_acheteurs = add_etablissement_data_to_acheteurs(df_sirets_acheteurs)
+    df_sirets_acheteurs = add_etablissement_data(
+        df_sirets_acheteurs, ["enseigne1Etablissement"], "acheteur_id"
+    )
 
     # print("Ajout des données unités légales (acheteurs)...")
-    # df_sirets_acheteurs = add_unite_legale_data_to_acheteurs(df_sirets_acheteurs)
+    df_sirets_acheteurs = add_unite_legale_data(
+        df_sirets_acheteurs,
+        ["denominationUniteLegale", "categorieJuridiqueUniteLegale"],
+    )
 
     # print("Construction du champ acheteur_id à partir des données SIRENE...")
-    # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
+    df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
+
+    print(df_sirets_acheteurs)
+
+    exit(1)
 
     # print("Jointure des données acheteurs enrichies avec les DECP...")
     # df = merge_sirets_acheteurs(df, df_sirets_acheteurs)
