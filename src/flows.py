@@ -62,7 +62,7 @@ def make_datalab_data():
 
     if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
-        publish_to_datagouv("datalab")
+        publish_to_datagouv(context="datalab")
     else:
         print("Publication sur data.gouv.fr désactivée.")
 
@@ -94,6 +94,10 @@ def make_decpinfo_data():
         publish_to_datagouv("decp")
     else:
         print("Publication sur data.gouv.fr désactivée.")
+
+    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
+        print("Publication sur data.gouv.fr...")
+        publish_to_datagouv(context="decp.info")
 
     return df
 
