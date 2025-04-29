@@ -34,7 +34,8 @@ testpaths = [
 ]
 env = [
     "DECP_JSON_FILES_PATH=data/decp_json_files_test.json",
-    "PREFECT_API_URL="
+    "PREFECT_API_URL=",
+    "DECP_PROCESSING_PUBLISH="
 ]
 addopts = "-p no:warnings"
 
