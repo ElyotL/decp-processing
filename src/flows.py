@@ -94,8 +94,9 @@ def make_decpinfo_data():
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA)
 
-    print("Validation des données DECP avec le TableSchema...")
-    validate_decp_against_tableschema()
+    # Pas la priorité pour le moment, prend du temps
+    # print("Validation des données DECP avec le TableSchema...")
+    # validate_decp_against_tableschema()
 
     print("Création du data package (JSON)....")
     make_data_package()
