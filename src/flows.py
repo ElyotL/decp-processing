@@ -41,7 +41,7 @@ def get_clean_concat():
     files = clean_decp_json(files)
 
     print("Fusion des dataframes...")
-    df = merge_decp_json(files)
+    df = concat_decp_json(files)
 
     print("Taille après merge: ", df.shape)
 

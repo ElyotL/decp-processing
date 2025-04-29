@@ -98,7 +98,7 @@ def normalize_tables(df):
     # TODO ajouter les sous-traitants quand ils seront ajoutés aux données
 
 
-def merge_decp_json(files: list) -> pl.DataFrame:
+def concat_decp_json(files: list) -> pl.DataFrame:
     dfs = []
     for file in files:
         df: pl.DataFrame = pl.read_parquet(f"{file}.parquet")
