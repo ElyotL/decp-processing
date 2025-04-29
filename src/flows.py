@@ -6,13 +6,11 @@ import polars as pl
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json
 from tasks.transform import (
-    merge_decp_json,
+    concat_decp_json,
     normalize_tables,
     setup_tableschema_columns,
     make_decp_sans_titulaires,
-    extract_unique_titulaires_siret,
     extract_unique_acheteurs_siret,
-    make_acheteur_nom,
     get_prepare_unites_legales,
     sort_columns,
 )
@@ -22,10 +20,9 @@ from tasks.output import (
     make_data_package,
 )
 
-from tasks.enrich import add_etablissement_data, add_unite_legale_data
+from tasks.enrich import add_unite_legale_data
 from tasks.publish import publish_to_datagouv
-from tasks.test import validate_decp_against_tableschema
-from config import DECP_PROCESSING_PUBLISH, DIST_DIR, SIRENE_DATA_DIR
+from config import DECP_PROCESSING_PUBLISH, DIST_DIR, SIRENE_DATA_DIR, BASE_DF_COLUMNS
 
 
 @task(log_prints=True)
@@ -191,6 +188,9 @@ def enrich_from_sirene(df: pl.LazyFrame):
 
 @flow(log_prints=True)
 def sirene_preprocess():
+    """Prétraitement mensuel des données SIRENE afin d'économiser du temps lors du traitement quotidien des DECP.
+    Pour chaque ressource (unités légales, établissements), un fichier parquet est produit.
+    """
     sirene_data_dir = SIRENE_DATA_DIR
 
     if not os.path.exists(sirene_data_dir):

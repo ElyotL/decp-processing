@@ -96,7 +96,7 @@ def add_unite_legale_data(
 def merge_sirets_acheteurs(decp_df: pl.DataFrame, df_sirets_acheteurs: pl.DataFrame):
     final_columns = ["acheteur_id", "acheteur_id"]
 
-    decp_df = decp_df.drop(columns=["acheteur_id"])
+    decp_df = decp_df.drop(["acheteur_id"])
     decp_df = pl.merge(
         decp_df,
         df_sirets_acheteurs[final_columns],
