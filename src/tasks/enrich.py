@@ -39,7 +39,7 @@ def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pl.DataFrame):
 
 
 def add_etablissement_data(
-    df: pl.LazyFrame, etablissement_columns: list, merge_on: str
+    df: pl.LazyFrame, etablissement_columns: list, siret_column: str
 ) -> pl.LazyFrame:
     # Récupération des données SIRET titulaires
     schema_etablissements = {
@@ -68,24 +68,27 @@ def add_etablissement_data(
     return df
 
 
-def add_unite_legale_data(df: pl.LazyFrame, unite_legale_columns: list) -> pl.LazyFrame:
-    schema_unite_legales = {
-        "siren": pl.String,
-        "categorieEntreprise": pl.String,
-        "etatAdministratifUniteLegale": pl.String,
-        "economieSocialeSolidaireUniteLegale": pl.String,
-        "categorieJuridiqueUniteLegale": pl.String,
-    }
-
-    unites_legales_lf = pl.scan_csv(
-        getenv("SIRENE_UNITES_LEGALES_PATH"),
-        index_col=None,
-        schema_overrides=schema_unite_legales,
-        sep=",",
-        usecols=["siren"] + unite_legale_columns,
+def add_unite_legale_data(
+    df: pl.LazyFrame, df_sirets_acheteurs: pl.LazyFrame, siret_column: str
+) -> pl.LazyFrame:
+    # Extraction du SIREN à partir du SIRET (9 premiers caractères)
+    df_sirets_acheteurs = df_sirets_acheteurs.with_columns(
+        pl.col(siret_column).str.head(9).alias("siren")
     )
 
-    df = pl.merge(df, unites_legales_lf, how="inner", on="siren")
+    unites_legales_lf = pl.scan_parquet(SIRENE_DATA_DIR + "/unites_legales.parquet")
+
+    # Pas besoin de garder les SIRET qui ne matchent pas dans ce df intermédiaire, puisqu'on
+    # merge in fine avec le reste des données
+    df_sirets_acheteurs = df_sirets_acheteurs.join(
+        unites_legales_lf, how="inner", on="siren"
+    )
+    df_sirets_acheteurs = df_sirets_acheteurs.rename(
+        {"denominationUniteLegale": "acheteur_nom", "siren": "acheteur_siren"}
+    )
+
+    # Ajout des données acheteurs enrichies au df de base
+    df = df.join(df_sirets_acheteurs, how="left", on="acheteur_id")
 
     return df
 

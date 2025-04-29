@@ -128,7 +128,7 @@ def enrich_from_sirene(df: pl.LazyFrame):
     # DONNÉES SIRENE ACHETEURS
 
     print("Extraction des SIRET des acheteurs...")
-    df_sirets_acheteurs = extract_unique_acheteurs_siret(df)
+    df_sirets_acheteurs = extract_unique_acheteurs_siret(df.clone())
 
     # print("Ajout des données établissements (acheteurs)...")
     # df_sirets_acheteurs = add_etablissement_data(
@@ -136,9 +136,10 @@ def enrich_from_sirene(df: pl.LazyFrame):
     # )
 
     print("Ajout des données unités légales (acheteurs)...")
-    df_sirets_acheteurs = add_unite_legale_data(
+    assert os.path.exists(SIRENE_DATA_DIR + "/unites_legales.parquet")
+    df = add_unite_legale_data(
+        df,
         df_sirets_acheteurs,
-        ["denominationUniteLegale", "categorieJuridiqueUniteLegale"],
         "acheteur_id",
     )
 
