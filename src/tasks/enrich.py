@@ -1,10 +1,11 @@
 import polars as pl
 from os import getenv
+from config import SIRENE_DATA_DIR
 
 
 def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pl.DataFrame):
     etablissement_df_chunked = pl.read_csv(
-        getenv("SIRENE_ETABLISSEMENTS_PATH"),
+        f"{SIRENE_DATA_DIR}/etablissements.parquet",
         chunksize=1000000,
         dtype="object",
         index_col=None,
@@ -51,7 +52,7 @@ def add_etablissement_data(
         "etatAdministratifEtablissement": "category",
     }
     etablissement_df_chunked = pl.scan_csv(
-        getenv("SIRENE_ETABLISSEMENTS_PATH"),
+        getenv(f"{SIRENE_DATA_DIR}/etablissements.parquet"),
         dtype=schema_etablissements,
         index_col=None,
         usecols=["siret"] + etablissement_columns,
