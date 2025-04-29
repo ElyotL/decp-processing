@@ -117,35 +117,6 @@ def concat_decp_json(files: list) -> pl.DataFrame:
     )
     print("-- ", index_size_before - df.height, " doublons supprimés")
 
-    # Ordre des colonnes
-    df = df.select(
-        "uid",
-        "id",
-        "nature",
-        "acheteur_id",
-        "titulaire_id",
-        "titulaire_typeIdentifiant",
-        "objet",
-        "montant",
-        "codeCPV",
-        "procedure",
-        "dureeMois",
-        "dateNotification",
-        "datePublicationDonnees",
-        "formePrix",
-        "attributionAvance",
-        "offresRecues",
-        "marcheInnovant",
-        "ccag",
-        "sousTraitanceDeclaree",
-        "typeGroupementOperateurs",
-        "tauxAvance",
-        "origineUE",
-        "origineFrance",
-        "lieuExecution_code",
-        "lieuExecution_typeCode",
-        "idAccordCadre",
-    )
     return df
 
 
