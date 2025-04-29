@@ -162,7 +162,7 @@ def extract_unique_acheteurs_siret(df: pl.LazyFrame):
 def get_prepare_unites_legales():
     sirene_data_dir = SIRENE_DATA_DIR
 
-    unites_legales_path = f"{sirene_data_dir}/StockUniteLegaleHistorique_utf8"
+    unites_legales_path = f"{sirene_data_dir}/StockUniteLegale_utf8"
     if not os.path.exists(f"{unites_legales_path}.zip"):
         print("Téléchargement des unités légales...")
         unites_legales_url = os.getenv("SIRENE_UNITES_LEGALES_URL")
