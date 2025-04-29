@@ -46,7 +46,7 @@ def get_clean_concat():
     print("Taille après merge: ", df.shape)
 
     print("Ajout des données SIRENE...")
-    df = enrich_from_sirene(df)
+    lf: pl.LazyFrame = enrich_from_sirene(df.lazy())
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
     df: pl.DataFrame = lf.collect(engine="streaming")
@@ -124,7 +124,7 @@ def decp_processing():
 
 
 @task(log_prints=True)
-def enrich_from_sirene(df):
+def enrich_from_sirene(df: pl.LazyFrame):
     # DONNÉES SIRENE ACHETEURS
 
     print("Extraction des SIRET des acheteurs...")
@@ -141,11 +141,6 @@ def enrich_from_sirene(df):
         ["denominationUniteLegale", "categorieJuridiqueUniteLegale"],
         "acheteur_id",
     )
-    df = df.collect(engine="streaming")
-    print(df_sirets_acheteurs)
-    breakpoint()
-
-    exit(1)
 
     # print("Construction du champ acheteur_nom à partir des données SIRENE...")
     # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)

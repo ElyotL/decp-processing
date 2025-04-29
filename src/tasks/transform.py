@@ -150,8 +150,8 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
     return df_decp_sans_titulaires
 
 
-def extract_unique_acheteurs_siret(df: pl.DataFrame):
-    # Extraction des SIRET des DECP
+def extract_unique_acheteurs_siret(df: pl.LazyFrame):
+    # Extraction des SIRET des DECP en une copie du df de base
     df = df.select("acheteur_id")
     df = df.unique().filter(pl.col("acheteur_id") != "")
     df = df.sort(by="acheteur_id")
