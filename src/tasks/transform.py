@@ -215,6 +215,18 @@ def get_prepare_unites_legales():
     )
 
 
+def sort_columns(df: pl.DataFrame, config_columns):
+    # Les colonnes présentes mais absentes des colonnes attendues sont mises à la fin de la liste
+    other_columns = []
+    for col in df.columns:
+        if not col in config_columns:
+            other_columns.append(col)
+
+    print("Colonnes inattendues:", other_columns)
+
+    return df.select(config_columns + other_columns)
+
+
 #
 # ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
 #

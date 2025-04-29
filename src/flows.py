@@ -14,6 +14,7 @@ from tasks.transform import (
     extract_unique_acheteurs_siret,
     make_acheteur_nom,
     get_prepare_unites_legales,
+    sort_columns,
 )
 from tasks.output import (
     save_to_files,
@@ -48,6 +49,8 @@ def get_clean_concat():
     df = enrich_from_sirene(df)
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
+    df: pl.DataFrame = lf.collect(engine="streaming")
+    df = sort_columns(df, BASE_DF_COLUMNS)
     save_to_files(df, f"{DIST_DIR}/decp")
 
 

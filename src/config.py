@@ -20,3 +20,36 @@ SIRENE_DATA_DIR = os.getenv("SIRENE_DATA_DIR")
 
 with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
     DECP_JSON_FILES = json.load(f)
+
+# Liste et ordre des colonnes pour le mono dataframe de base (avant normalisation et spécialisation)
+BASE_DF_COLUMNS = [
+    "uid",
+    "id",
+    "nature",
+    "acheteur_id",
+    "acheteur_nom",
+    "acheteur_siren",
+    "titulaire_id",
+    "titulaire_typeIdentifiant",
+    "objet",
+    "montant",
+    "codeCPV",
+    "procedure",
+    "dureeMois",
+    "dateNotification",
+    "datePublicationDonnees",
+    "formePrix",
+    "attributionAvance",
+    "offresRecues",
+    "marcheInnovant",
+    "ccag",
+    "sousTraitanceDeclaree",
+    "typeGroupementOperateurs",
+    "tauxAvance",
+    "origineUE",
+    "origineFrance",
+    "lieuExecution_code",
+    "lieuExecution_typeCode",
+    "idAccordCadre",
+    "source_open_data",
+]
