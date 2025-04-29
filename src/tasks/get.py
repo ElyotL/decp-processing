@@ -150,9 +150,3 @@ def get_decp_json() -> list:
         description=f"Les ressources JSON des DECP consolidées au format JSON ({date_now})",
     )
     return return_files
-
-
-def get_stats():
-    url = "https://www.data.gouv.fr/fr/datasets/r/8ded94de-3b80-4840-a5bb-7faad1c9c234"
-    df_stats = pl.read_csv(url, index_col=None)
-    return df_stats
