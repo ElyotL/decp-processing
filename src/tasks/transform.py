@@ -154,9 +154,7 @@ def extract_unique_acheteurs_siret(df: pl.DataFrame):
     # Extraction des SIRET des DECP
     df = df.select("acheteur_id")
     df = df.unique().filter(pl.col("acheteur_id") != "")
-
-    print(f"{df.height} acheteurs uniques")
-
+    df = df.sort(by="acheteur_id")
     return df
 
 
@@ -181,6 +179,7 @@ def get_prepare_unites_legales():
     print("-- sélection des colonnes et enregistrement au format parquet...")
     lf_ul = pl.scan_csv(f"{unites_legales_path}.csv", infer_schema=None)
     lf_ul = lf_ul.select(["siren", "denominationUniteLegale"])
+    lf_ul = lf_ul.sort(by="siren")
     lf_ul.collect(engine="streaming").write_parquet(
         f"{sirene_data_dir}/unites_legales.parquet"
     )
