@@ -11,6 +11,7 @@ from tasks.transform import (
     setup_tableschema_columns,
     make_decp_sans_titulaires,
     extract_unique_acheteurs_siret,
+    extract_unique_titulaires_siret,
     get_prepare_unites_legales,
     sort_columns,
 )
@@ -122,6 +123,8 @@ def decp_processing():
 
 @task(log_prints=True)
 def enrich_from_sirene(df: pl.LazyFrame):
+    assert os.path.exists(SIRENE_DATA_DIR + "/unites_legales.parquet")
+
     # DONNÉES SIRENE ACHETEURS
 
     print("Extraction des SIRET des acheteurs...")
@@ -133,19 +136,12 @@ def enrich_from_sirene(df: pl.LazyFrame):
     # )
 
     print("Ajout des données unités légales (acheteurs)...")
-    assert os.path.exists(SIRENE_DATA_DIR + "/unites_legales.parquet")
     df = add_unite_legale_data(
-        df,
-        df_sirets_acheteurs,
-        "acheteur_id",
+        df, df_sirets_acheteurs, siret_column="acheteur_id", type_siret="titulaire"
     )
 
     # print("Construction du champ acheteur_nom à partir des données SIRENE...")
     # df_sirets_acheteurs = make_acheteur_nom(df_sirets_acheteurs)
-
-    # print("Jointure des données acheteurs enrichies avec les DECP...")
-    # df = merge_sirets_acheteurs(df, df_sirets_acheteurs)
-    # del df_sirets_acheteurs
 
     # print("Enregistrement des DECP aux formats CSV et Parquet...")
     # save_to_files(df, f"{DIST_DIR}/decp")
@@ -160,15 +156,16 @@ def enrich_from_sirene(df: pl.LazyFrame):
     # Enrichissement des données pas prioritaire
     # cf https://github.com/ColinMaudry/decp-processing/issues/17
 
-    # print("Extraction des SIRET des titulaires...")
-    # df_sirets_titulaires = extract_unique_titulaires_siret(df)
+    print("Extraction des SIRET des titulaires...")
+    df_sirets_titulaires = extract_unique_titulaires_siret(df)
 
     # print("Ajout des données établissements (titulaires)...")
     # df_sirets_titulaires = add_etablissement_data_to_titulaires(df_sirets_titulaires)
 
-    # print("Ajout des données unités légales (titulaires)...")
-    # df_sirets_titulaires = add_unite_legale_data_to_titulaires(df_sirets_titulaires)
-
+    print("Ajout des données unités légales (titulaires)...")
+    df = add_unite_legale_data(
+        df, df_sirets_titulaires, siret_column="titulaire_id", type_siret="titulaire"
+    )
     # print("Amélioration des données unités légales des titulaires...")
     # df_sirets_titulaires = improve_titulaire_unite_legale_data(df_sirets_titulaires)
 

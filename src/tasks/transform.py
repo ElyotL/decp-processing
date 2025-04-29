@@ -151,10 +151,20 @@ def make_decp_sans_titulaires(df: pl.DataFrame):
 
 
 def extract_unique_acheteurs_siret(df: pl.LazyFrame):
-    # Extraction des SIRET des DECP en une copie du df de base
+    # Extraction des SIRET des DECP dans une copie du df de base
     df = df.select("acheteur_id")
     df = df.unique().filter(pl.col("acheteur_id") != "")
     df = df.sort(by="acheteur_id")
+    return df
+
+
+def extract_unique_titulaires_siret(df: pl.LazyFrame):
+    # Extraction des SIRET des DECP dans une copie du df de base
+    df = df.select("titulaire_id", "titulaire_typeIdentifiant")
+    df = df.unique().filter(
+        pl.col("titulaire_id") != "", pl.col("titulaire_typeIdentifiant") == "SIRET"
+    )
+    df = df.sort(by="titulaire_id")
     return df
 
 
@@ -200,18 +210,6 @@ def sort_columns(df: pl.DataFrame, config_columns):
 #
 # ⬇️⬇️⬇️ Fonctions à refactorer avec Polars et le format DECP 2022 ⬇️⬇️⬇️
 #
-
-
-def extract_unique_titulaires_siret(df: pl.DataFrame):
-    # Extraction des SIRET des DECP
-    df = df[["titulaire_id", "titulaire_typeIdentifiant"]]
-
-    df = df.unique()
-    df = df.filter(pl.col("titulaire_typeIdentifiant") == "SIRET")
-
-    print(f"{df.height} titulaires uniques")
-
-    return df
 
 
 def make_acheteur_nom(decp_acheteurs_df: pl.LazyFrame):
