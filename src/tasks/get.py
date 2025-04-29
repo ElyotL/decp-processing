@@ -81,6 +81,7 @@ def get_decp_json() -> list:
                 # encoder="utf8",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets
+                separator="_",
             )
 
             artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
