@@ -75,9 +75,9 @@ def get_decp_json() -> list:
             path = decp_json["marches"]["marche"]
             df: pl.DataFrame = pl.json_normalize(
                 path,
-                # strict=False,
+                strict=False,
                 # Pas de détection des dtypes, tout est pl.String pour commencer.
-                infer_schema_length=None,
+                infer_schema_length=10000,
                 # encoder="utf8",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets
