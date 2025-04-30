@@ -31,6 +31,8 @@ BASE_DF_COLUMNS = [
     "acheteur_siren",
     "titulaire_id",
     "titulaire_typeIdentifiant",
+    "titulaire_nom",
+    "titulaire_siren",
     "objet",
     "montant",
     "codeCPV",
