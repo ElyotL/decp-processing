@@ -137,7 +137,7 @@ def enrich_from_sirene(df: pl.LazyFrame):
 
     print("Ajout des données unités légales (acheteurs)...")
     df = add_unite_legale_data(
-        df, df_sirets_acheteurs, siret_column="acheteur_id", type_siret="titulaire"
+        df, df_sirets_acheteurs, siret_column="acheteur_id", type_siret="acheteur"
     )
 
     # print("Construction du champ acheteur_nom à partir des données SIRENE...")
