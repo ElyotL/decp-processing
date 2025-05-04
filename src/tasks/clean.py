@@ -42,6 +42,7 @@ def clean_decp_json(files: list):
         # index_size_before = df.height
         # df = df.unique(subset=["uid"], maintain_order=False)
         # print("-- ", index_size_before - df.height, " doublons supprimés (uid)")
+
         # Dates
         date_replacements = {
             # ID marché invalide et SIRET de l'acheteur
@@ -71,9 +72,11 @@ def clean_decp_json(files: list):
                 {"Marche": "Marché", "subsequent": "subséquent"}
             )
         )
+
         # Fix datatypes
         df = fix_data_types(df)
 
+        # Handle modifications
         df = process_modifications(df)
 
         file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
@@ -129,6 +132,7 @@ def fix_data_types(df: pl.LazyFrame):
             "true"
         )
     )
+
     df = df.with_columns(
         pl.col(["origineFrance", "origineUE"]).cast(pl.Boolean)
     )
