@@ -1,36 +1,67 @@
-from src.tasks.transform import remove_modfications_duplicates, replace_by_modification_data
+import pytest
 import polars as pl
+from tasks.transform import remove_modfications_duplicates, replace_by_modification_data
+from polars.testing import assert_frame_equal
 
-def test_remove_modfications_duplicates():
-    df = pl.LazyFrame({
-        "uid": ["20240101-1", "20240101-2", "20240101-3", "20240101-4", "20250101-02"],
-        "objet": ["TRUC", "TRUC", "TRUC", "TOTO", "TATA"],
-        "montant": [100, 101, 150, 200, 500],
-        "modifications": [[], [1], [1, 2], [], []]
-    })
+class TestHandleModificationsMarche:
+    def test_remove_modfications_duplicates(self):
+        df = pl.LazyFrame({
+            "uid": ["20240101-1", "20240101-2", "20240101-3", "20240101-4", "20250101-02"],
+            "objet": ["TRUC", "TRUC", "TRUC", "TOTO", "TATA"],
+            "montant": [100, 101, 150, 200, 500],
+            "modifications": [[], [1], [1, 2], [], []]
+        })
 
-    cleaned_df = remove_modfications_duplicates(df).collect()
-    assert len(cleaned_df) == 3
-    assert cleaned_df.sort("uid")["uid"].to_list() == ["20240101", "20240101-4", "20250101-02"]
-    
+        cleaned_df = remove_modfications_duplicates(df).collect()
+        assert len(cleaned_df) == 3
+        assert cleaned_df.sort("uid")["uid"].to_list() == ["20240101", "20240101-4", "20250101-02"]
 
-def test_replace_by_modification_data():
-    df = pl.LazyFrame({
-        "modif_id": ["20240101-3", "20250101-4", "20250102-1"],
-        "id": ["20240101-3", "20250101-4", "20250102-1"],
-        "objet": ["TRUC", "TATA", "TOTO"],
-        "montant": [150, 500, 200],
-        "dureeMois": [1, 2, 3],
-        "modifications": [[
-            {"modification": {'id': 1, 'dateNotificationModification': '2023-06-16', 'datePublicationDonneesModification': '2024-05-24', 'dureeMois': None, 'montant': 151.0, 'titulaires': None}},
-            {"modification": {'id': 1, 'dateNotificationModification': '2023-06-16', 'datePublicationDonneesModification': '2024-05-24', 'dureeMois': None, 'montant': 152.0, 'titulaires': None}},
-            {"modification": {'id': 1, 'dateNotificationModification': '2023-06-16', 'datePublicationDonneesModification': '2024-05-24', 'dureeMois': 2, 'montant': None, 'titulaires': None}},
-        ],
-        [{"modification": {'id': 1, 'dateNotificationModification': '2023-06-16', 'datePublicationDonneesModification': '2024-05-24', 'dureeMois': None, 'montant': 505, 'titulaires': None}}],
-        []]
-    })
+    def test_handle_modifications_marche_all_cases(self):
+        # Input DataFrame
+        df = pl.DataFrame({
+                    "id": [1, 2, 3, 4, 5],
+                    "modifications": [
+                        # Multiples modifications
+                        [
+                            {"modification": {"id": 101, "dateNotificationModification": "2023-01-02", "datePublicationDonneesModification": "2023-01-03", "montant": 1000, "dureeMois": 15}},
+                            {"modification": {"id": 102, "dateNotificationModification": "2023-02-01", "datePublicationDonneesModification": "2023-02-02", "montant": 1500, "dureeMois": 18}}
+                        ],
+                        # Modification sans montant
+                        [{"modification": {"id": 101, "dateNotificationModification": "2023-02-03", "datePublicationDonneesModification": "2023-02-04", "dureeMois": 12}}],
+                        # Modification sans durée
+                        [{"modification": {"id": 101, "dateNotificationModification": "2023-01-10", "datePublicationDonneesModification": "2023-01-12", "montant": 3000}}],
+                        # Multiples modifications dont une sans données
+                        [
+                             {"modification": {"id": 101, "dateNotificationModification": "2023-06-02", "datePublicationDonneesModification": "2023-06-03"}},
+                             {"modification": {"id": 102, "dateNotificationModification": "2023-06-03", "datePublicationDonneesModification": "2023-06-04", "montant": 1500}}
+                        ],
+                        # Pas de modification
+                        [None]
+                    ],
+                    "dateNotification": ["2023-01-01", "2023-02-02", "2023-01-02", "2023-06-01", "2024-02-10"],
+                    "datePublicationDonnees": ["2023-01-02", "2023-02-03", "2023-01-08", "2023-06-02", "2024-02-12"],
+                    "montant": [1000, 2000, 10000, 500, 5000],
+                    "dureeMois": [12, 24, 36, 10, 36]
+                })
 
-    modified_df = replace_by_modification_data(df).sort("modif_id").collect()
-    assert len(modified_df) == 3
-    assert modified_df["montant"].to_list() == [152.0, 505.0, 200.0]
-    assert modified_df["dureeMois"].to_list() == [2, 2, 3]
+        # Expected DataFrame
+        expected_df = (
+            pl.DataFrame({
+                "id": [1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
+                "modification_id": [102, 101, 0, 101, 0, 101, 0, 102, 101, 0, 0],
+                "dateNotification": ["2023-02-01", "2023-01-02", "2023-01-01", "2023-02-03", "2023-02-02", "2023-01-10", "2023-01-02", "2023-06-03", "2023-06-02", "2023-06-01", "2024-02-10"],
+                "datePublicationDonnees": ["2023-02-02", "2023-01-03", "2023-01-02", "2023-02-04", "2023-02-03", "2023-01-12", "2023-01-08", "2023-06-04", "2023-06-03", "2023-06-02", "2024-02-12"],
+                "montant": [1500, 1000, 1000, 2000, 2000, 3000, 10000, 1500, 500, 500, 5000],
+                "dureeMois": [18, 15, 12, 12, 24, 36, 36, 10, 10, 10, 36],
+                "estDerniereNotification": [True, False, False, True, False, True, False, True, False, False, True]
+            })
+            .with_columns(pl.col("datePublicationDonnees").str.to_datetime(format="%Y-%m-%d"))
+            .with_columns(pl.col("dateNotification").str.to_datetime(format="%Y-%m-%d"))
+            )
+
+        # Call the function
+        result_df = replace_by_modification_data(df)
+
+        print(result_df)
+        # Assert the result matches the expected DataFrame
+        assert_frame_equal(result_df, expected_df)

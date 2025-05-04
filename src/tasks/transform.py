@@ -59,42 +59,52 @@ def remove_modfications_duplicates(df):
     return df_cleaned
 
 
-def replace_by_modification_data(df):
-    if "modifications" not in df.collect_schema().names():
-        return df
-    df = df.explode("modifications")
-    df = df.unnest("modifications")
-    modification_columns = ['id', 'montant', 'dureeMois']
-    df = df.with_columns(
-        pl.col("modification").struct.rename_fields([
-            f"modification.{field}" for field in
-            modification_columns
-        ])
-    ).unnest("modification")
-    # On conserve la dernière valeur non_null pour tous les champs de modification
-    df = df.with_columns(**{f"last_{_col}": pl.col(f"modification.{_col}")
-                            .forward_fill()
-                            .over("modif_id")
-                        for _col in modification_columns})
-    df = df.drop([
-            f"modification.{field}" for field in
-            modification_columns
-        ])
-    # On remplace les valeurs par la dernière valeur modifiée
-    _schema = df.collect_schema()
-    for _col in modification_columns:
-        if not isinstance(_schema[f"last_{_col}"], pl.List):
-            df = df.with_columns(**{_col: pl.when(pl.col(f"last_{_col}").is_not_null()).then(pl.col(f"last_{_col}")).otherwise(pl.col(_col))})
-            print(f"{_col} a été remplacé par la valeur de la modification")
-        else:
-            print(f"{_col} a un type imprévu:", df.filter(pl.col(f"last_{_col}").is_not_null()).select(f"last_{_col}"))
-        pass
-    df = df.drop([
-            f"last_{_col}" for _col in
-            modification_columns
-    ])
-    df = df.unique("modif_id", keep="last")
-    return df
+def replace_by_modification_data(df: pl.DataFrame):
+    """
+    Gère les modifications dans le DataFrame des DECP.
+    Cette fonction extrait les informations des modifications et les fusionne avec le DataFrame de base en ajoutant une ligne par modification 
+    (chaque ligne contient les informations complètes à jour à la date de notification)
+    Elle ajoute également la colonne "estDerniereNotification" pour indiquer si la notification est la plus récente.
+    """
+
+    # Étape 1: Créer une copie du DataFrame initial sans la colonne "modifications"
+    df_base = df.select([col for col in df.columns if col != "modifications"])
+
+    # Étape 2: Explode le DataFrame pour avoir une ligne par modification
+    df_exploded = df.select("id", "modifications").explode("modifications").drop_nulls()
+
+    # Étape 3: Extraire les données des modifications
+    df_mods = df_exploded.select(
+        "id",
+        pl.col("modifications").struct.field("modification").struct.field("id").alias("modification_id"),
+        pl.col("modifications").struct.field("modification").struct.field("dateNotificationModification").alias("dateNotification"),
+        pl.col("modifications").struct.field("modification").struct.field("datePublicationDonneesModification").alias("datePublicationDonnees"),
+        pl.col("modifications").struct.field("modification").struct.field("montant").alias("montant"),
+        pl.col("modifications").struct.field("modification").struct.field("dureeMois").alias("dureeMois"),
+    )
+
+    # Étape 4: Joindre les données de base pour chaque ligne de modification
+    df_concat = (pl.concat([df_base
+                            .with_columns(pl.lit(0).alias("modification_id"))
+                            .select("id", "modification_id", "dateNotification", "datePublicationDonnees", "montant", "dureeMois"),
+                            df_mods], how="vertical_relaxed")
+                        .sort(["id", "dateNotification"], descending=[False, True])
+                        .with_columns(pl.col("datePublicationDonnees").str.to_datetime(format="%Y-%m-%d"))
+                        .with_columns(pl.col("dateNotification").str.to_datetime(format="%Y-%m-%d"))
+                        .with_columns(pl.when(pl.col("dateNotification") == pl.col("dateNotification").max().over("id")).then(True).otherwise(False).alias("estDerniereNotification"))
+                )
+
+    # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
+    df_concat = df_concat.with_columns(pl.col("montant").fill_null(strategy="backward").over("id"),
+                                    pl.col("dureeMois").fill_null(strategy="backward").over("id")
+                                    )
+
+    # Étape 5: Ajouter les données du DataFrame de base
+    df_final = df_concat.join(df_base.drop(["dateNotification", "datePublicationDonnees", "montant", "dureeMois"]),
+                            on="id", how="left")
+
+    return df_final
+
 
 def process_modifications(df):
     df = remove_modfications_duplicates(df)
