@@ -37,7 +37,6 @@ def clean_decp_json(files: list):
         # TODO: à déplacer autre part, dans transform
         df = df.with_columns((pl.col("acheteur_id") + pl.col("id")).alias("uid"))
 
-        df = process_modifications(df)
         # Suppression des lignes en doublon par UID (acheteur id + id)
         # Exemple : 20005584600014157140791205100
         # index_size_before = df.height
@@ -72,9 +71,10 @@ def clean_decp_json(files: list):
                 {"Marche": "Marché", "subsequent": "subséquent"}
             )
         )
-
         # Fix datatypes
         df = fix_data_types(df)
+
+        df = process_modifications(df)
 
         file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
         return_files.append(file)

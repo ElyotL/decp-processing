@@ -89,8 +89,6 @@ def replace_by_modification_data(df: pl.DataFrame):
                             .select("id", "modification_id", "dateNotification", "datePublicationDonnees", "montant", "dureeMois"),
                             df_mods], how="vertical_relaxed")
                         .sort(["id", "dateNotification"], descending=[False, True])
-                        .with_columns(pl.col("datePublicationDonnees").str.to_datetime(format="%Y-%m-%d"))
-                        .with_columns(pl.col("dateNotification").str.to_datetime(format="%Y-%m-%d"))
                         .with_columns(pl.when(pl.col("dateNotification") == pl.col("dateNotification").max().over("id")).then(True).otherwise(False).alias("estDerniereNotification"))
                 )
 
