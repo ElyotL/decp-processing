@@ -64,19 +64,18 @@ def replace_by_modification_data(df: pl.DataFrame):
     Gère les modifications dans le DataFrame des DECP.
     Cette fonction extrait les informations des modifications et les fusionne avec le DataFrame de base en ajoutant une ligne par modification 
     (chaque ligne contient les informations complètes à jour à la date de notification)
-    Elle ajoute également la colonne "estDerniereNotification" pour indiquer si la notification est la plus récente.
+    Elle ajoute également la colonne "donneesActuelles" pour indiquer si la notification est la plus récente.
     """
 
     # Étape 1: Créer une copie du DataFrame initial sans la colonne "modifications"
     df_base = df.select([col for col in df.columns if col != "modifications"])
 
     # Étape 2: Explode le DataFrame pour avoir une ligne par modification
-    df_exploded = df.select("id", "modifications").explode("modifications").drop_nulls()
+    df_exploded = df.select("uid", "modifications").explode("modifications").drop_nulls()
 
     # Étape 3: Extraire les données des modifications
     df_mods = df_exploded.select(
-        "id",
-        pl.col("modifications").struct.field("modification").struct.field("id").alias("modification_id"),
+        "uid",
         pl.col("modifications").struct.field("modification").struct.field("dateNotificationModification").alias("dateNotification"),
         pl.col("modifications").struct.field("modification").struct.field("datePublicationDonneesModification").alias("datePublicationDonnees"),
         pl.col("modifications").struct.field("modification").struct.field("montant").alias("montant"),
@@ -85,21 +84,21 @@ def replace_by_modification_data(df: pl.DataFrame):
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
     df_concat = (pl.concat([df_base
-                            .with_columns(pl.lit(0).alias("modification_id"))
-                            .select("id", "modification_id", "dateNotification", "datePublicationDonnees", "montant", "dureeMois"),
+                            .select("uid", "dateNotification", "datePublicationDonnees", "montant", "dureeMois"),
                             df_mods], how="vertical_relaxed")
-                        .sort(["id", "dateNotification"], descending=[False, True])
-                        .with_columns(pl.when(pl.col("dateNotification") == pl.col("dateNotification").max().over("id")).then(True).otherwise(False).alias("estDerniereNotification"))
+                        .with_columns((pl.col("uid").cum_count().over("uid") - 1).alias("modification_id"))
+                        .with_columns(pl.when(pl.col("modification_id") == pl.col("modification_id").max().over("uid")).then(True).otherwise(False).alias("donneesActuelles"))
+                        .sort(["uid"], descending=[False])
                 )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
-    df_concat = df_concat.with_columns(pl.col("montant").fill_null(strategy="backward").over("id"),
-                                    pl.col("dureeMois").fill_null(strategy="backward").over("id")
+    df_concat = df_concat.with_columns(pl.col("montant").fill_null(strategy="backward").over("uid"),
+                                    pl.col("dureeMois").fill_null(strategy="backward").over("uid")
                                     )
 
     # Étape 5: Ajouter les données du DataFrame de base
     df_final = df_concat.join(df_base.drop(["dateNotification", "datePublicationDonnees", "montant", "dureeMois"]),
-                            on="id", how="left")
+                            on="uid", how="left")
 
     return df_final
 
@@ -164,7 +163,7 @@ def merge_decp_json(files: list) -> pl.DataFrame:
         df: pl.DataFrame = pl.read_parquet(f"{file}.parquet")
         dfs.append(df)
 
-    df = pl.concat(dfs, how="diagonal")
+    df = pl.concat(dfs, how="diagonal_relaxed")
 
     print(
         "Suppression des lignes en doublon par UID + titulaire ID + titulaire type ID"

@@ -16,9 +16,6 @@ def clean_decp_json(files: list):
 
         df = pl.scan_parquet(f"{file}.parquet")
 
-        # Explosion des titulaires
-        df = explode_titulaires(df)
-
         # Colonnes exclues pour l'instant
         # df = df.rename({
         #     "typesPrix_typePrix": "typesPrix",
@@ -76,8 +73,11 @@ def clean_decp_json(files: list):
         # Fix datatypes
         df = fix_data_types(df)
 
-        # Handle modifications
+        # Explosion des modifications
         df = process_modifications(df)
+
+        # Explosion des titulaires
+        df = explode_titulaires(df)
 
         file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
         return_files.append(file)
