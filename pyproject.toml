@@ -1,8 +1,8 @@
 [project]
 name = "decp-processing"
-description = "An introductory project to Prefect"
-version = "2.0.0"
-requires-python = ">= 3.9"
+description = "Traitement des données des marchés publics français."
+version = "0.1.1"
+requires-python = ">= 3.8"
 authors = [
     { name = "Colin Maudry", email = "colin+decp@maudry.com" }
 ]
@@ -15,7 +15,7 @@ dependencies = [
     "frictionless==4.40.11",
     "datapackage-to-datasette",
     "ipykernel",
-    "prefect",
+    "prefect==3.3.3",
 ]
 
 [project.optional-dependencies]
