@@ -176,13 +176,6 @@ def enrich_from_sirene(df):
 
 if __name__ == "__main__":
     decp_processing.serve(
-        name="decp-processing-cron",
-        cron="0 6 * * 1-5",
-        description="Téléchargement, traitement, et publication des DECP.",
-        concurrency_limit="1",
-        pause_on_shutdown=False,
-    )
-    decp_processing.serve(
         name="decp-processing-once",
         description="Téléchargement, traitement, et publication des DECP.",
     )
