@@ -1,0 +1,12 @@
+[Unit]
+Description=Prefect worker
+
+[Service]
+User=prefect
+WorkingDirectory=/home/yunohost.app/prefect
+ExecStart=/home/yunohost.app/prefect/venv/bin/prefect worker start --pool "local"
+Restart=always
+EnvironmentFile=/home/yunohost.app/prefect/.env
+
+[Install]
+WantedBy=multi-user.target
