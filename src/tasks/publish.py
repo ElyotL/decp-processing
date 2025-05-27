@@ -66,11 +66,11 @@ def publish_to_datagouv(context: str):
         #     "resource_id": "c6b08d03-7aa4-4132-b5b2-fd76633feecc",
         #     "context": "decp",
         # },
-        {
-            "file": f"{DIST_DIR}/datapackage.json",
-            "resource_id": "65194f6f-e273-4067-8075-56f072d56baf",
-            "context": "decp",
-        },
+        # {
+        #     "file": f"{DIST_DIR}/datapackage.json",
+        #     "resource_id": "65194f6f-e273-4067-8075-56f072d56baf",
+        #     "context": "decp",
+        # },
         # {"file": f"{DIST_DIR}/statistiques.csv", "resource_id": "8ded94de-3b80-4840-a5bb-7faad1c9c234"},
     ]
 

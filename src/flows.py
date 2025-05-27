@@ -86,8 +86,8 @@ def make_decpinfo_data():
     # print("Validation des données DECP avec le TableSchema...")
     # validate_decp_against_tableschema()
 
-    print("Création du data package (JSON)....")
-    make_data_package()
+    # print("Création du data package (JSON)....")
+    # make_data_package()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
     if DECP_PROCESSING_PUBLISH.lower() == "true":
