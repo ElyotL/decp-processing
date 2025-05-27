@@ -12,7 +12,7 @@ load_dotenv()
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 DIST_DIR = f"dist/" + DATE_NOW
-DECP_PROCESSING_PUBLISH = os.getenv("DECP_PROCESSING_PUBLISH")
+DECP_PROCESSING_PUBLISH = os.environ.get("DECP_PROCESSING_PUBLISH", "")
 
-with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
+with open(os.environ.get("DECP_JSON_FILES_PATH", "data/decp_json_files.json")) as f:
     DECP_JSON_FILES = json.load(f)

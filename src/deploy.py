@@ -3,9 +3,10 @@ import os
 from dotenv import dotenv_values
 
 if __name__ == "__main__":
+    env = dotenv_values()
     flow.from_source(
         source="https://github.com/ColinMaudry/decp-processing.git",
-        entrypoint="flows.py:decp-processing",
+        entrypoint="src/flows.py:decp_processing",
     ).deploy(
         name="decp-processing",
         description="Tous les jours du lundi au vendredi à 6h00",
@@ -15,6 +16,6 @@ if __name__ == "__main__":
         job_variables={
             # Les variables d'environnement sont sont donc fixées au moment du déploiement,
             # pas dans un .env au moment du run
-            "env": dotenv_values(".env")
+            "env": env
         },
     )
