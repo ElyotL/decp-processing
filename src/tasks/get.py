@@ -9,6 +9,7 @@ from pathlib import Path
 
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
+from config import DIST_DIR, DECP_JSON_FILES, DATE_NOW
 
 
 @task(retries=5, retry_delay_seconds=5)
@@ -37,18 +38,35 @@ def get_json_metadata(json_file: dict) -> dict:
     """Téléchargement des métadonnées d'une ressoure (fichier)."""
     resource_id = json_file["url"].split("/")[-1]
     api_url = f"http://www.data.gouv.fr/api/1/datasets/5cd57bf68b4c4179299eb0e9/resources/{resource_id}/"
-    return get(api_url, follow_redirects=True).json()
+    json_metadata = get(api_url, follow_redirects=True).json()
+    return json_metadata
 
 
 @task
-def get_decp_json(json_files: dict, date_now: str) -> list:
+def get_decp_json() -> list:
     """Téléchargement des DECP publiées par Bercy sur data.gouv.fr."""
+
+    json_files = DECP_JSON_FILES
+    date_now = DATE_NOW
+
     return_files = []
     artefact = []
     for json_file in json_files:
+        artifact_row = {}
         if json_file["process"] is True:
             decp_json_file: Path = get_json(date_now, json_file)
-            decp_json_metadata = get_json_metadata(json_file)
+
+            if json_file["url"].startswith("https"):
+                decp_json_metadata = get_json_metadata(json_file)
+                artifact_row = {
+                    "open_data_filename": decp_json_metadata["title"],
+                    "open_data_id": decp_json_metadata["id"],
+                    "sha1": decp_json_metadata["checksum"]["value"],
+                    "created_at": decp_json_metadata["created_at"],
+                    "last_modified": decp_json_metadata["last_modified"],
+                    "filesize": decp_json_metadata["filesize"],
+                    "views": decp_json_metadata["metrics"]["views"],
+                }
 
             with open(decp_json_file, encoding="utf8") as f:
                 decp_json = json.load(f)
@@ -56,22 +74,20 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
             filename = json_file["file_name"]
             path = decp_json["marches"]["marche"]
             df: pl.DataFrame = pl.json_normalize(
-                path, strict=False, infer_schema_length=10000, encoder="utf8"
+                path,
+                strict=False,
+                infer_schema_length=10000,
+                encoder="utf8",
+                separator="_",
+                # Remplacement des "." dans les noms de colonnes par des "_" car
+                # en SQL ça oblige à entourer les noms de colonnes de guillemets
             )
 
-            artifact_row = {
-                "open_data_dataset": "data.gouv.fr JSON",
-                "open_data_filename": decp_json_metadata["title"],
-                "open_data_id": decp_json_metadata["id"],
-                "download_date": date_now,
-                "sha1": decp_json_metadata["checksum"]["value"],
-                "created_at": decp_json_metadata["created_at"],
-                "last_modified": decp_json_metadata["last_modified"],
-                "filesize": decp_json_metadata["filesize"],
-                "views": decp_json_metadata["metrics"]["views"],
-                "column_number": len(df.columns),
-                "row_number": df.height,
-            }
+            artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
+            artifact_row["download_date"] = date_now
+            artifact_row["column_number"] = len(df.columns)
+            artifact_row["row_number"] = df.height
+
             artefact.append(artifact_row)
 
             df = df.with_columns(
@@ -83,11 +99,11 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
 
             columns_to_drop = [
                 # Pas encore incluses
-                "typesPrix.typePrix",
-                "considerationsEnvironnementales.considerationEnvironnementale",
-                "considerationsSociales.considerationSociale",
-                "techniques.technique",
-                "modalitesExecution.modaliteExecution",
+                "typesPrix_typePrix",
+                "considerationsEnvironnementales_considerationEnvironnementale",
+                "considerationsSociales_considerationSociale",
+                "techniques_technique",
+                "modalitesExecution_modaliteExecution",
                 "modifications",
                 "actesSousTraitance",
                 "modificationsActesSousTraitance",
@@ -108,18 +124,22 @@ def get_decp_json(json_files: dict, date_now: str) -> list:
                 "dureeMois_source",
             ]
 
+            absent_columns = []
             for col in columns_to_drop:
                 try:
                     df = df.drop(col)
                 except ColumnNotFoundError:
+                    absent_columns.append(col)
                     pass
 
+            if len(absent_columns) > 0:
+                print(f"{filename}: colonnes à supprimer absentes : {absent_columns}")
             print(f"[{filename}]", df.shape)
 
-            file = f"dist/get/{filename}_{date_now}"
-            if not os.path.exists("dist/get"):
-                os.mkdir("dist/get")
-            save_to_files(df, file)
+            file = f"{DIST_DIR}/get/{filename}_{date_now}"
+            if not os.path.exists(f"{DIST_DIR}/get"):
+                os.mkdir(f"{DIST_DIR}/get")
+            save_to_files(df, file, ["parquet"])
 
             return_files.append(file)
 

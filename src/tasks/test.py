@@ -1,9 +1,10 @@
 from tableschema import Table
+from config import DIST_DIR
 
 
 def validate_decp_against_tableschema():
     table = Table(
-        "decp.csv",
+        f"{DIST_DIR}/decp.csv",
         schema="https://raw.githubusercontent.com/ColinMaudry/decp-table-schema/main/schema.json",
     )
 

@@ -10,11 +10,7 @@ def initialization():
     # print("Récupération du code (pull)...")
     # command = "git pull origin main"
     # subprocess.run(command.split(" "))
-
-    print("Suppression + création du dossier /dist")
-    if os.path.exists("dist"):
-        rmtree("dist", ignore_errors=False)
-    os.mkdir("dist")
+    pass
 
 
 def create_artifact(

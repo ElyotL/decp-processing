@@ -24,7 +24,7 @@ def add_etablissement_data_to_acheteurs(df_siret_acheteurs: pl.DataFrame):
                 df_siret_acheteurs,
                 df_chunk,
                 how="inner",
-                left_on="acheteur.id",
+                left_on="acheteur_id",
                 right_on="siret",
             )
             if merge.index.size > 0:
@@ -108,7 +108,7 @@ def add_etablissement_data_to_titulaires(df_sirets_titulaires: pl.DataFrame):
                 df_sirets_titulaires,
                 df_chunk,
                 how="inner",
-                left_on="titulaire.id",
+                left_on="titulaire_id",
                 right_on="siret",
             )
             if merge.index.size > 0:
@@ -162,13 +162,13 @@ def add_unite_legale_data_to_titulaires(df_sirets_titulaires: pl.DataFrame):
 
 
 def merge_sirets_acheteurs(decp_df: pl.DataFrame, df_sirets_acheteurs: pl.DataFrame):
-    final_columns = ["acheteur.id", "acheteur.nom"]
+    final_columns = ["acheteur_id", "acheteur_id"]
 
-    decp_df = decp_df.drop(columns=["acheteur.nom"])
+    decp_df = decp_df.drop(columns=["acheteur_id"])
     decp_df = pl.merge(
         decp_df,
         df_sirets_acheteurs[final_columns],
-        on="acheteur.id",
+        on="acheteur_id",
         how="left",
     )
 
@@ -181,19 +181,19 @@ def merge_sirets_titulaires(decp_df: pl.DataFrame, df_sirets_titulaires: pl.Data
     final_columns = [
         "id",
         "uid",
-        "acheteur.id",
-        "acheteur.nom",
+        "acheteur_id",
+        "acheteur_id",
         "nature",
         "objet",
         "codeCPV",
-        "lieuExecution.code",
-        "lieuExecution.typeCode",
+        "lieuExecution_code",
+        "lieuExecution_typeCode",
         "lieuExecution.nom",
         "dureeMois",
         "dateNotification",
         "montant",
-        "titulaire.id",
-        "titulaire.typeIdentifiant",
+        "titulaire_id",
+        "titulaire_typeIdentifiant",
         "titulaire.denominationSociale",
         "codeAPE",
         "departement",
@@ -212,7 +212,7 @@ def merge_sirets_titulaires(decp_df: pl.DataFrame, df_sirets_titulaires: pl.Data
     df_decp_titulaires = pl.merge(
         decp_df,
         df_sirets_titulaires,
-        on=["titulaire.id", "titulaire.typeIdentifiant"],
+        on=["titulaire_id", "titulaire_typeIdentifiant"],
         how="left",
     )
     df_decp_titulaires = df_decp_titulaires[final_columns]

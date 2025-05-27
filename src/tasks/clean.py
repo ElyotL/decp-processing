@@ -3,6 +3,7 @@ import os
 from tasks.output import save_to_files
 from prefect import task
 from tasks.transform import explode_titulaires
+from config import DIST_DIR
 
 
 @task
@@ -20,11 +21,11 @@ def clean_decp_json(files: list):
 
         # Colonnes exclues pour l'instant
         # df = df.rename({
-        #     "typesPrix.typePrix": "typesPrix",
-        #     "considerationsEnvironnementales.considerationEnvironnementale": "considerationsEnvironnementales",
-        #     "considerationsSociales.considerationSociale": "considerationsSociales",
-        #     "techniques.technique": "techniques",
-        #     "modalitesExecution.modaliteExecution": "modalitesExecution"
+        #     "typesPrix_typePrix": "typesPrix",
+        #     "considerationsEnvironnementales_considerationEnvironnementale": "considerationsEnvironnementales",
+        #     "considerationsSociales_considerationSociale": "considerationsSociales",
+        #     "techniques_technique": "techniques",
+        #     "modalitesExecution_modaliteExecution": "modalitesExecution"
         # })
 
         # Remplacement des valeurs nulles
@@ -34,7 +35,7 @@ def clean_decp_json(files: list):
 
         # Ajout du champ uid
         # TODO: à déplacer autre part, dans transform
-        df = df.with_columns((pl.col("acheteur.id") + pl.col("id")).alias("uid"))
+        df = df.with_columns((pl.col("acheteur_id") + pl.col("id")).alias("uid"))
 
         # Suppression des lignes en doublon par UID (acheteur id + id)
         # Exemple : 20005584600014157140791205100
@@ -75,13 +76,13 @@ def clean_decp_json(files: list):
         # Fix datatypes
         df = fix_data_types(df)
 
-        file = f"dist/clean/{file.split('/')[-1]}"
+        file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
         return_files.append(file)
-        if not os.path.exists("dist/clean"):
-            os.mkdir("dist/clean")
+        if not os.path.exists(f"{DIST_DIR}/clean"):
+            os.mkdir(f"{DIST_DIR}/clean")
 
         df = df.collect()
-        save_to_files(df, file)
+        save_to_files(df, file, ["parquet"])
 
     return return_files
 

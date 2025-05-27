@@ -1,6 +1,5 @@
 from prefect.testing.utilities import prefect_test_harness
-from flows import make_datalab_data
-import polars as pl
+from flows import decp_processing
 import pytest
 import logging
 import os
@@ -21,13 +20,12 @@ def prefect_test_fixture(tmp_path_factory):
         for lgr in loggers_to_cleanup:
             for handler in lgr.handlers[:]:
                 if "prefect" in str(handler).lower():
-                    print(f"Flushing Prefect handler: {handler}")
                     handler.flush()
                     handler.close()
                 lgr.removeHandler(handler)
 
 
 class TestFlow:
-    def test_datalab_output(self):
+    def test_decp_processing(self):
         with prefect_test_harness(server_startup_timeout=10):
-            make_datalab_data()
+            decp_processing()
