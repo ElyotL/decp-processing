@@ -92,13 +92,9 @@ def make_decpinfo_data():
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
     if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
-        publish_to_datagouv("decp")
+        publish_to_datagouv(context="decp")
     else:
         print("Publication sur data.gouv.fr désactivée.")
-
-    if os.getenv("DECP_PROCESSING_PUBLISH", "False").lower() == "true":
-        print("Publication sur data.gouv.fr...")
-        publish_to_datagouv(context="decp.info")
 
     return df
 
