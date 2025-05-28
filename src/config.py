@@ -8,13 +8,16 @@ if not os.path.exists(".env"):
     print("Création du fichier .env à partir de template.env")
     shutil.copyfile("template.env", ".env")
 
+if not os.path.exists("./dist"):
+    os.mkdir("dist")
+
 load_dotenv()
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 MONTH_NOW = DATE_NOW[2:10]
 
 DIST_DIR = f"dist/" + DATE_NOW
-DECP_PROCESSING_PUBLISH = os.getenv("DECP_PROCESSING_PUBLISH")
+DECP_PROCESSING_PUBLISH = os.environ.get("DECP_PROCESSING_PUBLISH", "")
 
 SIRENE_DATA_DIR = os.getenv("SIRENE_DATA_DIR")
 

@@ -52,7 +52,7 @@ def get_clean_concat():
     save_to_files(df, f"{DIST_DIR}/decp")
 
 
-@flow(log_prints=True)
+@flow
 def make_datalab_data():
     """Tâches consacrées à la transformation des données dans un format
     adapté aux activités du Datalab d'Anticor."""
@@ -72,7 +72,7 @@ def make_datalab_data():
 
     if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
-        publish_to_datagouv("datalab")
+        publish_to_datagouv(context="datalab")
     else:
         print("Publication sur data.gouv.fr désactivée.")
 
@@ -88,7 +88,7 @@ def make_decpinfo_data():
     save_to_files(make_decp_sans_titulaires(df), f"{DIST_DIR}/decp-sans-titulaires")
 
     # print("Ajout des colonnes manquantes...")
-    df = setup_tableschema_columns(df)
+    # df = setup_tableschema_columns(df)
 
     # CREATION D'UN DATA PACKAGE (FRICTIONLESS DATA)
 
@@ -96,13 +96,13 @@ def make_decpinfo_data():
     # print("Validation des données DECP avec le TableSchema...")
     # validate_decp_against_tableschema()
 
-    print("Création du data package (JSON)....")
-    make_data_package()
+    # print("Création du data package (JSON)....")
+    # make_data_package()
 
     # PUBLICATION DES FICHIERS SUR DATA.GOUV.FR
     if DECP_PROCESSING_PUBLISH.lower() == "true":
         print("Publication sur data.gouv.fr...")
-        publish_to_datagouv("decp")
+        publish_to_datagouv(context="decp")
     else:
         print("Publication sur data.gouv.fr désactivée.")
 
@@ -202,15 +202,3 @@ def sirene_preprocess():
 
 if __name__ == "__main__":
     decp_processing()
-
-    # On verra les deployments quand la base marchera
-    #
-    # decp_processing.serve(
-    #     name="decp-processing-cron",
-    #     cron="0 6 * * 1-5",
-    #     description="Téléchargement, traitement, et publication des DECP.",
-    # )
-    # decp_processing.serve(
-    #     name="decp-processing-once",
-    #     description="Téléchargement, traitement, et publication des DECP.",
-    # )

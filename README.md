@@ -69,6 +69,28 @@ cp template.env .env
 nano .env
 ```
 
+### Installation sur le serveur pour les déploiements (Linux)
+
+Ces instructions supposent que le serveur prefect est installé, configuré et démarré.
+
+Il suppose également que le work pool "local" a été créé.
+
+1. Suivre les instructions d'installation ci-dessus
+2. Démarrer le serveur prefect
+3. Adapter les chemins dans `systemd/prefect-worker.service`
+4. Copier `systemd/prefect-worker.service` dans le répertoire `/etc/systemd/system`
+5. Activer le service (pour qu'il soit démarré au démarrage du serveur)
+
+```bash
+systemctl enable prefect-worker.service
+```
+5. Démarrer le service
+```bash
+systemctl start prefect-worker.service
+```
+
+Un nouveau worker doit apparaître dans l'interface de gestion de prefect.
+
 ### Avec Docker (sous Windows)
 
 Construire et lancer le container
@@ -82,7 +104,7 @@ Démarrer le serveur prefect une fois dans le container
 ```
 Le serveur est accessible sur le navigateur à l'adresse http://127.0.0.1:4200/
 
-## Lancer le traitement des données
+## Lancer le traitement des données (pour le développement en local)
 
 Le pré-traitement des données SIRENE doit être fait une fois pour que le traitement principal soit fonctionnel.
 
@@ -94,6 +116,23 @@ Lancement du traitement principal (datalab + decp.info)
 
 ```bash
 python src/flows.py
+```
+
+## Lancer le traitement des données (sur le serveur Prefect configuré dans .env)
+
+Le déploiement sur le serveur déploie à la fois un run quotidien de traitement des données et un run activable à la demande.
+
+Attention, la version de prefect du client utilisé pour le déploiement et celle utilisée pour le serveur doivent être identiques. Cela est normalement garanti par la version configurée dans `pyproject.toml`.
+
+1. Suivre les instructions de la section "Installation sur le serveur pour les déploiements"
+2. Vérifier que le `.env` est bien configuré, ce sont ces variables qui seront utilisées par les run du serveur.
+2. Déployer sur le serveur :
+```bash
+python src/deploy.py
+```
+4. Le run se lancera tous les jours selon la configuration cron. Si tu souhaites exécuter le run maintenant :
+```bash
+prefect deployment run decp-processing
 ```
 
 ## Test
