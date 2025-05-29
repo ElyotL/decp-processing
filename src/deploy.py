@@ -19,3 +19,19 @@ if __name__ == "__main__":
             "env": env
         },
     )
+
+    flow.from_source(
+        source="https://github.com/ColinMaudry/decp-processing.git",
+        entrypoint="src/flows.py:sirene_preprocess",
+    ).deploy(
+        name="sirene-preprocess",
+        description="Tous les mois, le 3",
+        work_pool_name="local",
+        ignore_warnings=True,
+        cron="0 1 3 * *",
+        job_variables={
+            # Les variables d'environnement sont sont donc fixées au moment du déploiement,
+            # pas dans un .env au moment du run
+            "env": env
+        },
+    )

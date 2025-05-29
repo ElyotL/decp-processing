@@ -189,13 +189,14 @@ def sirene_preprocess():
     Pour chaque ressource (unités légales, établissements), un fichier parquet est produit.
     """
     sirene_data_dir = SIRENE_DATA_DIR
+    print("SIRENE directory: " + sirene_data_dir)
 
     if not os.path.exists(sirene_data_dir):
         os.mkdir(sirene_data_dir)
 
-    # preparer les données établissements
+    # préparer lest données établissements
 
-    # préprare les données unités légales
+    # préparer les données unités légales
     print("Prépararion des unités légales...")
     get_prepare_unites_legales()
 

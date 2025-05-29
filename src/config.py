@@ -11,7 +11,8 @@ if not os.path.exists(".env"):
 if not os.path.exists("./dist"):
     os.mkdir("dist")
 
-load_dotenv()
+# Les variables configurées sur le serveur doivent avoir la priorité
+load_dotenv(override=False)
 
 DATE_NOW = datetime.now().isoformat()[0:10]  # YYYY-MM-DD
 MONTH_NOW = DATE_NOW[2:10]
@@ -21,7 +22,7 @@ DECP_PROCESSING_PUBLISH = os.environ.get("DECP_PROCESSING_PUBLISH", "")
 
 SIRENE_DATA_DIR = os.getenv("SIRENE_DATA_DIR")
 
-with open(os.environ["DECP_JSON_FILES_PATH"]) as f:
+with open(os.getenv("DECP_JSON_FILES_PATH", "data/decp_json_files.json")) as f:
     DECP_JSON_FILES = json.load(f)
 
 # Liste et ordre des colonnes pour le mono dataframe de base (avant normalisation et spécialisation)
