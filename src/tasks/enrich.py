@@ -39,6 +39,7 @@ def add_unite_legale_data(
     # Extraction du SIREN à partir du SIRET (9 premiers caractères)
     df_sirets = df_sirets.with_columns(pl.col(siret_column).str.head(9).alias("siren"))
 
+    # Récupération des données des unités légales issues du flow de preprocess
     unites_legales_lf = pl.scan_parquet(SIRENE_DATA_DIR + "/unites_legales.parquet")
 
     # Pas besoin de garder les SIRET qui ne matchent pas dans ce df intermédiaire, puisqu'on
@@ -47,17 +48,13 @@ def add_unite_legale_data(
     df_sirets = df_sirets.rename(
         {"denominationUniteLegale": f"{type_siret}_nom", "siren": f"{type_siret}_siren"}
     )
-
-    # Ajout des données acheteurs enrichies au df de base
-    df = df.join(df_sirets, how="left", on=siret_column)
-
-    # Si c'est des données titulaire non-SIRENE qui ont matché (rarissime), on ne peut pas garder les données ajoutées
-    if type_siret == "titulaire":
-        df = df.with_columns(
-            pl.when(pl.col.titulaire_typeIdentifiant != "SIRET")
-            .then(pl.struct(titulaire_siren=None, titulaire_nom=None))
-            .otherwise(pl.struct("titulaire_siren", "titulaire_nom"))
-            .struct.unnest()
+    if type_siret == "acheteur":
+        # Ajout des données acheteurs enrichies au df de base
+        df = df.join(df_sirets, how="left", on="acheteur_id")
+    elif type_siret == "titulaire":
+        # En joignant en utilisant à la fois le SIRET et le typeIdentifiant, on s'assure qu'on ne joint pas sur
+        # des id de titulaires non-SIRET
+        df = df.join(
+            df_sirets, how="left", on=["titulaire_id", "titulaire_typeIdentifiant"]
         )
-
     return df
