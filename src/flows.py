@@ -3,6 +3,7 @@ import shutil
 from prefect import flow, task, engine
 import polars as pl
 
+from tasks.analyse import generate_stats
 from tasks.get import get_decp_json
 from tasks.clean import clean_decp_json
 from tasks.transform import (
@@ -41,14 +42,15 @@ def get_clean_concat():
     print("Fusion des dataframes...")
     df = concat_decp_json(files)
 
-    print("Taille après merge: ", df.shape)
-
     print("Ajout des données SIRENE...")
     lf: pl.LazyFrame = enrich_from_sirene(df.lazy())
 
-    print("Enregistrement des DECP aux formats CSV, Parquet...")
+    print("Génération de l'artefact (statistiques) sur le base df...")
     df: pl.DataFrame = lf.collect(engine="streaming")
-    df = sort_columns(df, BASE_DF_COLUMNS)
+    generate_stats(df)
+
+    print("Enregistrement des DECP aux formats CSV, Parquet...")
+    df: pl.DataFrame = sort_columns(df, BASE_DF_COLUMNS)
     save_to_files(df, f"{DIST_DIR}/decp")
 
 
