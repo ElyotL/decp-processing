@@ -86,6 +86,7 @@ def get_decp_json() -> list:
 
             artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
             artifact_row["download_date"] = date_now
+            artifact_row["columns"] = sorted(df.columns)
             artifact_row["column_number"] = len(df.columns)
             artifact_row["row_number"] = df.height
 
