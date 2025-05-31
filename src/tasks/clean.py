@@ -14,7 +14,7 @@ def clean_decp_json(files: list):
         # CLEAN DATA
         #
 
-        df = pl.scan_parquet(f"{file}.parquet")
+        df: pl.LazyFrame = pl.scan_parquet(f"{file}.parquet")
 
         # Explosion des titulaires
         df = explode_titulaires(df)

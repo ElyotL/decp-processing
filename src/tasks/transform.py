@@ -8,7 +8,7 @@ from tasks.output import save_to_sqlite
 import zipfile
 
 
-def explode_titulaires(df: pl.DataFrame):
+def explode_titulaires(df: pl.LazyFrame):
     # Explosion des champs titulaires sur plusieurs lignes (un titulaire de marché par ligne)
     # et une colonne par champ
 
@@ -45,6 +45,23 @@ def explode_titulaires(df: pl.DataFrame):
 
     # Cast l'identifiant en string
     df = df.with_columns(pl.col("titulaire_id").cast(pl.String))
+
+    # Correction des cas où typeIdentifiant et id sont inversés:
+    mask = (~pl.col("titulaire_id").str.starts_with(r"\d")) & (
+        pl.col("titulaire_typeIdentifiant").str.starts_with(r"\d")
+    )
+    df = df.with_columns(
+        [
+            pl.when(mask)
+            .then(pl.col("titulaire_typeIdentifiant"))
+            .otherwise(pl.col("titulaire_id"))
+            .alias("titulaire_id"),
+            pl.when(mask)
+            .then(pl.col("titulaire_id"))
+            .otherwise(pl.col("titulaire_typeIdentifiant"))
+            .alias("titulaire_typeIdentifiant"),
+        ]
+    )
 
     return df
 
