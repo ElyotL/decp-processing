@@ -60,14 +60,6 @@ def explode_titulaires(df: pl.LazyFrame):
         ]
     )
 
-    print("id et typeIdentifiant inversés :")
-    print(
-        df.collect()
-        .filter(pl.col("titulaire_typeIdentifiant").str.contains(r"[0-9]"))
-        .select(["titulaire_typeIdentifiant", "titulaire_id"])
-        .head()
-    )
-
     return df
 
 
