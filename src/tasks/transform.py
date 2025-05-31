@@ -47,20 +47,25 @@ def explode_titulaires(df: pl.LazyFrame):
     df = df.with_columns(pl.col("titulaire_id").cast(pl.String))
 
     # Correction des cas où typeIdentifiant et id sont inversés:
-    mask = (~pl.col("titulaire_id").str.starts_with(r"\d")) & (
-        pl.col("titulaire_typeIdentifiant").str.starts_with(r"\d")
-    )
     df = df.with_columns(
         [
-            pl.when(mask)
-            .then(pl.col("titulaire_typeIdentifiant"))
-            .otherwise(pl.col("titulaire_id"))
-            .alias("titulaire_id"),
-            pl.when(mask)
+            pl.when(pl.col("titulaire_typeIdentifiant").str.contains(r"[0-9]"))
             .then(pl.col("titulaire_id"))
             .otherwise(pl.col("titulaire_typeIdentifiant"))
             .alias("titulaire_typeIdentifiant"),
+            pl.when(pl.col("titulaire_typeIdentifiant").str.contains(r"[0-9]"))
+            .then(pl.col("titulaire_typeIdentifiant"))
+            .otherwise(pl.col("titulaire_id"))
+            .alias("titulaire_id"),
         ]
+    )
+
+    print("id et typeIdentifiant inversés :")
+    print(
+        df.collect()
+        .filter(pl.col("titulaire_typeIdentifiant").str.contains(r"[0-9]"))
+        .select(["titulaire_typeIdentifiant", "titulaire_id"])
+        .head()
     )
 
     return df
