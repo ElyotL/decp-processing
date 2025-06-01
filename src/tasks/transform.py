@@ -44,25 +44,38 @@ def explode_titulaires(df: pl.DataFrame):
 
     return df
 
+
 def remove_modfications_duplicates(df):
     """On supprime les marches avec un suffixe correspondant à un autre marché"""
     if "modifications" not in df.collect_schema().names():
         return df
     # Index sans les suffixes
-    df_cleaned = df.with_columns(short_id=pl.col("uid").str.head(-2),
-                        modifications_len=pl.col("modifications").list.len())
-    df_cleaned = df_cleaned.with_columns(modif_id=pl.col("short_id") + pl.col("objet"))
-    df_cleaned = df_cleaned.with_columns(uid=pl.when(pl.col("modif_id").is_duplicated())
-                            .then(pl.col("short_id"))
-                            .otherwise(pl.col("uid")))
-    df_cleaned = df_cleaned.sort("modifications_len").unique("modif_id", keep="last")
+    df_cleaned = remove_suffixes_from_uid_column(df)
+    df_cleaned = df_cleaned.with_columns(
+        modifications_len=pl.col("modifications").list.len(),
+    )
+
+    df_cleaned = df_cleaned.sort("modifications_len").unique("uid", keep="last")
     return df_cleaned
+
+
+def remove_suffixes_from_uid_column(df):
+    """Supprimer les suffixes des uid quand ce suffixe correspond au nombre de mofifications apportées au marché"""
+    df = df.with_columns(
+        expected_suffix=pl.col("modifications").list.len().cast(pl.Utf8).str.zfill(2)
+    )
+    df = df.with_columns(
+        uid=pl.when(pl.col("uid").str.ends_with(pl.col("expected_suffix")))
+        .then(pl.col("uid").str.head(-2))
+        .otherwise(pl.col("uid"))
+    )
+    return df
 
 
 def replace_by_modification_data(df: pl.DataFrame):
     """
     Gère les modifications dans le DataFrame des DECP.
-    Cette fonction extrait les informations des modifications et les fusionne avec le DataFrame de base en ajoutant une ligne par modification 
+    Cette fonction extrait les informations des modifications et les fusionne avec le DataFrame de base en ajoutant une ligne par modification
     (chaque ligne contient les informations complètes à jour à la date de notification)
     Elle ajoute également la colonne "donneesActuelles" pour indiquer si la notification est la plus récente.
     """
@@ -71,34 +84,74 @@ def replace_by_modification_data(df: pl.DataFrame):
     df_base = df.select([col for col in df.columns if col != "modifications"])
 
     # Étape 2: Explode le DataFrame pour avoir une ligne par modification
-    df_exploded = df.select("uid", "modifications").explode("modifications").drop_nulls()
+    df_exploded = (
+        df.select("uid", "modifications").explode("modifications").drop_nulls()
+    )
 
     # Étape 3: Extraire les données des modifications
     df_mods = df_exploded.select(
         "uid",
-        pl.col("modifications").struct.field("modification").struct.field("dateNotificationModification").alias("dateNotification"),
-        pl.col("modifications").struct.field("modification").struct.field("datePublicationDonneesModification").alias("datePublicationDonnees"),
-        pl.col("modifications").struct.field("modification").struct.field("montant").alias("montant"),
-        pl.col("modifications").struct.field("modification").struct.field("dureeMois").alias("dureeMois"),
+        pl.col("modifications")
+        .struct.field("modification")
+        .struct.field("dateNotificationModification")
+        .alias("dateNotification"),
+        pl.col("modifications")
+        .struct.field("modification")
+        .struct.field("datePublicationDonneesModification")
+        .alias("datePublicationDonnees"),
+        pl.col("modifications")
+        .struct.field("modification")
+        .struct.field("montant")
+        .alias("montant"),
+        pl.col("modifications")
+        .struct.field("modification")
+        .struct.field("dureeMois")
+        .alias("dureeMois"),
     )
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
-    df_concat = (pl.concat([df_base
-                            .select("uid", "dateNotification", "datePublicationDonnees", "montant", "dureeMois"),
-                            df_mods], how="vertical_relaxed")
-                        .with_columns((pl.col("uid").cum_count().over("uid") - 1).alias("modification_id"))
-                        .with_columns(pl.when(pl.col("modification_id") == pl.col("modification_id").max().over("uid")).then(True).otherwise(False).alias("donneesActuelles"))
-                        .sort(["uid"], descending=[False])
-                )
+    df_concat = (
+        pl.concat(
+            [
+                df_base.select(
+                    "uid",
+                    "dateNotification",
+                    "datePublicationDonnees",
+                    "montant",
+                    "dureeMois",
+                ),
+                df_mods,
+            ],
+            how="vertical_relaxed",
+        )
+        .with_columns(
+            (pl.col("uid").cum_count().over("uid") - 1).alias("modification_id")
+        )
+        .with_columns(
+            pl.when(
+                pl.col("modification_id") == pl.col("modification_id").max().over("uid")
+            )
+            .then(True)
+            .otherwise(False)
+            .alias("donneesActuelles")
+        )
+        .sort(["uid"], descending=[False])
+    )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
-    df_concat = df_concat.with_columns(pl.col("montant").fill_null(strategy="backward").over("uid"),
-                                    pl.col("dureeMois").fill_null(strategy="backward").over("uid")
-                                    )
+    df_concat = df_concat.with_columns(
+        pl.col("montant").fill_null(strategy="backward").over("uid"),
+        pl.col("dureeMois").fill_null(strategy="backward").over("uid"),
+    )
 
     # Étape 5: Ajouter les données du DataFrame de base
-    df_final = df_concat.join(df_base.drop(["dateNotification", "datePublicationDonnees", "montant", "dureeMois"]),
-                            on="uid", how="left")
+    df_final = df_concat.join(
+        df_base.drop(
+            ["dateNotification", "datePublicationDonnees", "montant", "dureeMois"]
+        ),
+        on="uid",
+        how="left",
+    )
 
     return df_final
 
@@ -107,6 +160,7 @@ def process_modifications(df):
     df = remove_modfications_duplicates(df)
     df = replace_by_modification_data(df)
     return df
+
 
 def normalize_tables(df):
     # MARCHES
