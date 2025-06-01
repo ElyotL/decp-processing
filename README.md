@@ -52,13 +52,15 @@ Installez les dépendances :
 pip install .
 ```
 
-Installez les dépendances de développement :
+Installez les dépendances de développement et l'auto-formatage :
 
 ```bash
 pip install .[dev]
+pre-commit install
+# à chaque commit black et cie se lancent et reformattent les fichiers si besoin, ça peut demander de "git add"
+# de nouveau pour prendre en compte le reformatage dans le commit
 
-# sous zsh
-
+# installation des dépendances sous zsh
 pip install .'[dev]'
 ```
 
