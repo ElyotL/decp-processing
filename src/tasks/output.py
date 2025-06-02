@@ -37,6 +37,7 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
     # Éxecution de la requête
     connection = sqlite3.connect(f"{DIST_DIR}/{database}.sqlite")
     cursor = connection.cursor()
+    # Important de "DROP TABLE IF EXISTS", le fichier sqlite de la veille pré-existera en général
     cursor.execute(f'DROP TABLE IF EXISTS "{table_name}"')
     cursor.execute(create_table_sql)
     connection.commit()
