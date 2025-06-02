@@ -1,9 +1,6 @@
 from httpx import post
-import json
 from os import getenv
 from config import DIST_DIR
-
-from jedi.api import project
 
 
 def update_resource(api, dataset_id, resource_id, file_path, api_key):
@@ -16,17 +13,6 @@ def update_resource(api, dataset_id, resource_id, file_path, api_key):
 
 
 def publish_to_datagouv(context: str):
-    files = {
-        "datalab": [
-            "datalab.sqlite",
-        ],
-        "decp.info": [
-            "decp-sans-titulaires.parquet",
-            "decp-sans-titulaires.csv",
-            "datapackage.json",
-            # "decp.sqlite",
-        ],
-    }
     api_key = getenv("DATAGOUVFR_API_KEY")
     api = "https://www.data.gouv.fr/api/1"
     dataset_id = "608c055b35eb4e6ee20eb325"
