@@ -95,7 +95,7 @@ def get_decp_json() -> list:
             artefact.append(artifact_row)
 
             df = df.with_columns(
-                pl.lit(f"data.gouv.fr {filename}.json").alias("source_open_data")
+                pl.lit(f"data.gouv.fr {filename}.json").alias("sourceOpenData")
             )
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
