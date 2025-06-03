@@ -1,8 +1,9 @@
 import os
+from datetime import datetime
 
 import polars as pl
-from datetime import datetime
-from config import DIST_DIR, DATE_NOW
+
+from config import DATE_NOW
 from tasks.setup import create_table_artifact
 
 
@@ -67,12 +68,12 @@ def generate_stats(df: pl.DataFrame):
         stats[f"{str(year)}_nb_notifications_marchés"] = df_date_notification.height
 
         if df_date_notification.height > 0:
-            stats[
-                f"{str(year)}_somme_montant_marchés_notifiés"
-            ] = df_date_notification.group_by("montant").sum()["montant"][0]
-            stats[
-                f"{str(year)}_médiane_montant_marchés_notifiés"
-            ] = df_date_notification.group_by("montant").median()["montant"][0]
+            stats[f"{str(year)}_somme_montant_marchés_notifiés"] = (
+                df_date_notification.group_by("montant").sum()["montant"][0]
+            )
+            stats[f"{str(year)}_médiane_montant_marchés_notifiés"] = (
+                df_date_notification.group_by("montant").median()["montant"][0]
+            )
         else:
             stats[f"{str(year)}_somme_montant_marchés_notifiés"] = ""
             stats[f"{str(year)}_médiane_montant_marchés_notifiés"] = ""

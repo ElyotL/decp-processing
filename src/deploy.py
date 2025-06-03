@@ -1,6 +1,5 @@
-from prefect import flow
-import os
 from dotenv import dotenv_values
+from prefect import flow
 
 if __name__ == "__main__":
     env = dotenv_values()
