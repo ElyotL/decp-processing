@@ -1,9 +1,11 @@
-import polars as pl
 import os
-from tasks.output import save_to_files
+
+import polars as pl
 from prefect import task
-from tasks.transform import explode_titulaires
+
 from config import DIST_DIR
+from tasks.output import save_to_files
+from tasks.transform import explode_titulaires
 
 
 @task

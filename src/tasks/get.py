@@ -1,15 +1,15 @@
-import polars as pl
-from httpx import get
-import os
 import json
-
-from polars.polars import ColumnNotFoundError
-from prefect import task
+import os
 from pathlib import Path
 
+import polars as pl
+from httpx import get
+from polars.polars import ColumnNotFoundError
+from prefect import task
+
+from config import DATE_NOW, DECP_JSON_FILES, DIST_DIR
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
-from config import DIST_DIR, DECP_JSON_FILES, DATE_NOW
 
 
 @task(retries=5, retry_delay_seconds=5)
