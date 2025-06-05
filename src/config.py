@@ -1,8 +1,9 @@
-from datetime import datetime
-from dotenv import load_dotenv
 import json
 import os
 import shutil
+from datetime import datetime
+
+from dotenv import load_dotenv
 
 if not os.path.exists(".env"):
     print("Création du fichier .env à partir de template.env")

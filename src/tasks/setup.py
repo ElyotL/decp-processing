@@ -1,6 +1,4 @@
-import os
 from prefect import task
-from shutil import rmtree
 from prefect.artifacts import create_table_artifact
 
 

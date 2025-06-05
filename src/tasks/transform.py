@@ -1,11 +1,12 @@
+import os
+import zipfile
+
 import polars as pl
 from httpx import get
 from prefect import task
-from config import SIRENE_DATA_DIR
-import os
 
+from config import SIRENE_DATA_DIR
 from tasks.output import save_to_sqlite
-import zipfile
 
 
 def explode_titulaires(df: pl.LazyFrame):
@@ -213,7 +214,7 @@ def sort_columns(df: pl.DataFrame, config_columns):
     # Les colonnes présentes mais absentes des colonnes attendues sont mises à la fin de la liste
     other_columns = []
     for col in df.columns:
-        if not col in config_columns:
+        if col not in config_columns:
             other_columns.append(col)
 
     print("Colonnes inattendues:", other_columns)
@@ -235,7 +236,7 @@ def make_acheteur_nom(decp_acheteurs_df: pl.LazyFrame):
         if row["enseigne1Etablissement"] is NaN:
             return row["denominationUniteLegale"]
         else:
-            return f'{row["denominationUniteLegale"]} - {row["enseigne1Etablissement"]}'
+            return f"{row['denominationUniteLegale']} - {row['enseigne1Etablissement']}"
 
     decp_acheteurs_df["acheteur_id"] = decp_acheteurs_df.apply(construct_nom, axis=1)
 

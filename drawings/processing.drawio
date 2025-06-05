@@ -52,13 +52,13 @@
         <mxCell id="CQpyJpuCwKYfmjIRMZHl-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;labelBackgroundColor=none;" edge="1" parent="CQpyJpuCwKYfmjIRMZHl-5" source="CQpyJpuCwKYfmjIRMZHl-11" target="CQpyJpuCwKYfmjIRMZHl-15">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="CQpyJpuCwKYfmjIRMZHl-11" value="Ajout d&#39;une colonne &lt;b&gt;&quot;source_open_data&quot;&lt;/b&gt; avec &quot;data.economie valides 2019&quot;" style="rounded=1;whiteSpace=wrap;html=1;shadow=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Helvetica;fontSize=12;align=center;strokeColor=default;verticalAlign=middle;fontColor=default;fillColor=default;" vertex="1" parent="CQpyJpuCwKYfmjIRMZHl-5">
+        <mxCell id="CQpyJpuCwKYfmjIRMZHl-11" value="Ajout d&#39;une colonne &lt;b&gt;&quot;sourceOpenData&quot;&lt;/b&gt; avec &quot;data.economie valides 2019&quot;" style="rounded=1;whiteSpace=wrap;html=1;shadow=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Helvetica;fontSize=12;align=center;strokeColor=default;verticalAlign=middle;fontColor=default;fillColor=default;" vertex="1" parent="CQpyJpuCwKYfmjIRMZHl-5">
           <mxGeometry x="50" y="370" width="140" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CQpyJpuCwKYfmjIRMZHl-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=default;labelBackgroundColor=none;" edge="1" parent="CQpyJpuCwKYfmjIRMZHl-5" source="CQpyJpuCwKYfmjIRMZHl-13" target="CQpyJpuCwKYfmjIRMZHl-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="CQpyJpuCwKYfmjIRMZHl-13" value="Ajout d&#39;une colonne &lt;b&gt;&quot;source_open_data&quot;&lt;/b&gt; avec &quot;data.economie valides 2022&quot;" style="rounded=1;whiteSpace=wrap;html=1;shadow=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Helvetica;fontSize=12;align=center;strokeColor=default;verticalAlign=middle;fontColor=default;fillColor=default;" vertex="1" parent="CQpyJpuCwKYfmjIRMZHl-5">
+        <mxCell id="CQpyJpuCwKYfmjIRMZHl-13" value="Ajout d&#39;une colonne &lt;b&gt;&quot;sourceOpenData&quot;&lt;/b&gt; avec &quot;data.economie valides 2022&quot;" style="rounded=1;whiteSpace=wrap;html=1;shadow=0;labelBackgroundColor=none;strokeWidth=1;fontFamily=Helvetica;fontSize=12;align=center;strokeColor=default;verticalAlign=middle;fontColor=default;fillColor=default;" vertex="1" parent="CQpyJpuCwKYfmjIRMZHl-5">
           <mxGeometry x="280" y="370" width="140" height="80" as="geometry" />
         </mxCell>
         <mxCell id="CQpyJpuCwKYfmjIRMZHl-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Helvetica;fontSize=12;fontColor=default;labelBackgroundColor=none;" edge="1" parent="CQpyJpuCwKYfmjIRMZHl-5" source="CQpyJpuCwKYfmjIRMZHl-15" target="CQpyJpuCwKYfmjIRMZHl-19">
