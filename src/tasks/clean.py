@@ -129,11 +129,11 @@ def fix_data_types(df: pl.LazyFrame):
     # Champs booléens
 
     # TODO: À améliorer
-    # print("Fixing booleans...")
-    # df = df.with_columns(
-    #     pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
-    #         True
-    #     )
-    # )
+    print("Fixing booleans...")
+    df = df.with_columns(
+        pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
+            True
+        )
+    )
 
     return df
