@@ -1,5 +1,7 @@
-import polars as pl
 from os import getenv
+
+import polars as pl
+
 from config import SIRENE_DATA_DIR
 
 

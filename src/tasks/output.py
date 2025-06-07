@@ -1,5 +1,6 @@
-import polars as pl
 import sqlite3
+
+import polars as pl
 
 from config import DIST_DIR
 
@@ -24,7 +25,7 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
             sql_type = "REAL"
         column_definitions.append(f'"{column_name}" {sql_type}')
 
-    if "." in primary_key and not '"' in primary_key:
+    if "." in primary_key and '"' not in primary_key:
         raise ValueError(
             f"Les noms de colonnes contenant un point doivent être entre guillemets : {primary_key}"
         )
@@ -32,7 +33,7 @@ def save_to_sqlite(df: pl.DataFrame, database: str, table_name: str, primary_key
     primary_key_definition = (
         f"PRIMARY KEY({primary_key})"  # Peut être une clé composite. Ex : id, type
     )
-    create_table_sql = f"CREATE TABLE \"{table_name}\" ({', '.join(column_definitions)}, {primary_key_definition})"  # Add quotes
+    create_table_sql = f'CREATE TABLE "{table_name}" ({", ".join(column_definitions)}, {primary_key_definition})'  # Add quotes
 
     # Éxecution de la requête
     connection = sqlite3.connect(f"{DIST_DIR}/{database}.sqlite")

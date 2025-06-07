@@ -1,7 +1,8 @@
+import logging
+import os
+
 import pytest
 from prefect.testing.utilities import prefect_test_harness
-import os
-import logging
 
 
 @pytest.fixture(autouse=True, scope="session")

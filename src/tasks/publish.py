@@ -1,5 +1,7 @@
-from httpx import post
 from os import getenv
+
+from httpx import post
+
 from config import DIST_DIR
 
 
