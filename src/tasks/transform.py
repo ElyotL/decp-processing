@@ -183,8 +183,8 @@ def extract_unique_titulaires_siret(df: pl.LazyFrame):
 
 @task
 def get_prepare_unites_legales():
-    data_dir = SIRENE_DATA_DIR
-    zip_path = data_dir / "StockUniteLegale_utf8.zip"
+    sirene_data_dir = SIRENE_DATA_DIR
+    zip_path = sirene_data_dir / "StockUniteLegale_utf8.zip"
     if not zip_path.exists():
         print("Téléchargement des unités légales...")
         unites_legales_url = os.environ["SIRENE_UNITES_LEGALES_URL"]
@@ -197,13 +197,15 @@ def get_prepare_unites_legales():
     if not csv_path.exists():
         print("Décompression des unités légales...")
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(data_dir)
+            zip_ref.extractall(sirene_data_dir)
 
     print("-- sélection des colonnes et enregistrement au format parquet...")
     lf_ul = pl.scan_csv(csv_path, infer_schema=None)
     lf_ul = lf_ul.select(["siren", "denominationUniteLegale"])
     lf_ul = lf_ul.sort(by="siren")
-    lf_ul.collect(engine="streaming").write_parquet(data_dir / "unites_legales.parquet")
+    lf_ul.collect(engine="streaming").write_parquet(
+        sirene_data_dir / "unites_legales.parquet"
+    )
 
 
 def sort_columns(df: pl.DataFrame, config_columns):
