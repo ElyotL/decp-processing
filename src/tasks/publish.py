@@ -63,8 +63,8 @@ def publish_to_datagouv(context: str):
     ]
 
     for upload in uploads:
-        print(f"Mise à jour de {upload['file']}...")
         if context == upload["context"]:
+            print(f"Mise à jour de {upload['file']}...")
             result = update_resource(
                 api, dataset_id, upload["resource_id"], upload["file"], api_key
             )

@@ -1,5 +1,10 @@
 [
   {
+    "file_name": "decp-2025-06",
+    "url": "https://www.data.gouv.fr/fr/datasets/r/6e5f9e37-196c-4584-985d-a83dc212fca2",
+    "process": true
+  },
+  {
     "file_name": "decp-2025-05",
     "url": "https://www.data.gouv.fr/fr/datasets/r/50549a78-188d-42f4-b2fb-d099a0bb7faf",
     "process": true
