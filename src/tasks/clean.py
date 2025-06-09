@@ -1,6 +1,7 @@
 import os
 
 import polars as pl
+import polars.selectors as cs
 from prefect import task
 
 from config import DIST_DIR
@@ -129,13 +130,16 @@ def fix_data_types(df: pl.LazyFrame):
     )
 
     # Champs booléens
-
-    # TODO: À améliorer
     print("Fixing booleans...")
+    cols = ("sousTraitanceDeclaree", "attributionAvance", "marcheInnovant")
+    str_cols = cs.by_name(cols) & cs.string()
+    float_cols = cs.by_name(cols) & cs.float()
     df = df.with_columns(
-        pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
-            True
-        )
-    )
-
+        pl.when(str_cols.str.to_lowercase() == "true")
+        .then(True)
+        .when(str_cols.str.to_lowercase() == "false")
+        .then(False)
+        .otherwise(None)
+        .name.keep()
+    ).with_columns(float_cols.fill_nan(None).cast(pl.Boolean).name.keep())
     return df
