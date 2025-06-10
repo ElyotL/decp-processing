@@ -64,7 +64,7 @@ def explode_titulaires(df: pl.LazyFrame):
     return df
 
 
-def remove_modfications_duplicates(df):
+def remove_modifications_duplicates(df):
     """On supprime les marches avec un suffixe correspondant à un autre marché"""
     if "modifications" not in df.collect_schema().names():
         return df
@@ -121,6 +121,7 @@ def replace_by_modification_data(df: pl.DataFrame):
         .alias("datePublicationDonnees"),
         pl.col("modification").struct.field("montant").alias("montant"),
         pl.col("modification").struct.field("dureeMois").alias("dureeMois"),
+        pl.col("modifications").struct.field("modification").struct.field("titulaires").alias("titulaires")
     )
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
@@ -133,31 +134,33 @@ def replace_by_modification_data(df: pl.DataFrame):
                     "datePublicationDonnees",
                     "montant",
                     "dureeMois",
+                    "titulaires"
                 ),
                 df_mods,
             ],
             how="vertical_relaxed",
         )
         .with_columns(
-            (pl.col("uid").cum_count().over("uid") - 1).alias("modification_id")
+            (pl.col("uid").cum_count().over("uid").cast(pl.Int64) - 1).alias("modification_id")
         )
+        .with_columns(pl.when(pl.col("modification_id") == pl.col("modification_id").max().over("uid")).then(True).otherwise(False).alias("donneesActuelles"))
         .with_columns(
             (
                 pl.col("modification_id") == pl.col("modification_id").max().over("uid")
             ).alias("donneesActuelles")
         )
-        .sort(["uid", "dateNotification"], descending=False)
+        .sort(["uid", "modification_id"], descending=[False, True])
     )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
     df_concat = df_concat.with_columns(
-        pl.col("montant", "dureeMois").fill_null(strategy="forward").over("uid")
+        pl.col("montant", "dureeMois", "titulaires").fill_null(strategy="backward").over("uid")
     )
 
     # Étape 5: Ajouter les données du DataFrame de base
     df_final = df_concat.join(
-        df_base.drop(
-            ["dateNotification", "datePublicationDonnees", "montant", "dureeMois"]
+        df.drop(
+            ["dateNotification", "datePublicationDonnees", "montant", "dureeMois",  "titulaires", "modifications"]
         ),
         on="uid",
         how="left",
@@ -167,7 +170,7 @@ def replace_by_modification_data(df: pl.DataFrame):
 
 
 def process_modifications(df):
-    df = remove_modfications_duplicates(df)
+    df = remove_modifications_duplicates(df)
     df = replace_by_modification_data(df)
     return df
 
@@ -178,10 +181,10 @@ def normalize_tables(df):
     df_marches: pl.DataFrame = pl.DataFrame(df.to_arrow()).drop(
         "titulaire_id", "titulaire_typeIdentifiant"
     )
-    df_marches = df_marches.unique("uid").sort(
+    df_marches = df_marches.unique(subset=["uid", "modification_id"]).sort(
         by="datePublicationDonnees", descending=True
     )
-    save_to_sqlite(df_marches, "datalab", "marches", "uid")
+    save_to_sqlite(df_marches, "datalab", "marches", "uid, modification_id")
     del df_marches
 
     # ACHETEURS
@@ -207,14 +210,14 @@ def normalize_tables(df):
 
     ## Table marches_titulaires
     df_marches_titulaires: pl.DataFrame = df.select(
-        "uid", "titulaire_id", "titulaire_typeIdentifiant"
+        "uid", "titulaire_id", "titulaire_typeIdentifiant", "modification_id"
     )
-    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche_uid"})
+    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche_uid", "modification_id": "marche_modification_id"})
     save_to_sqlite(
         df_marches_titulaires,
         "datalab",
         "marches_titulaires",
-        '"marche_uid", "titulaire_id", "titulaire_typeIdentifiant"',
+        '"marche_uid", "titulaire_id", "titulaire_typeIdentifiant", "marche_modification_id"',
     )
     del df_marches_titulaires
 
@@ -230,12 +233,12 @@ def concat_decp_json(files: list) -> pl.DataFrame:
     df = pl.concat(dfs, how="diagonal_relaxed")
 
     print(
-        "Suppression des lignes en doublon par UID + titulaire ID + titulaire type ID"
+        "Suppression des lignes en doublon par UID + titulaire ID + titulaire type ID + modification_id"
     )
     # Exemple : 20005584600014157140791205100
     index_size_before = df.height
     df = df.unique(
-        subset=["uid", "titulaire_id", "titulaire_typeIdentifiant"],
+        subset=["uid", "titulaire_id", "titulaire_typeIdentifiant", "modification_id"],
         maintain_order=False,
     )
     print("-- ", index_size_before - df.height, " doublons supprimés")

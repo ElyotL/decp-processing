@@ -78,18 +78,18 @@ def clean_decp_json(files: list):
         lf = fix_data_types(lf)
 
         # Explosion des modifications
-        df = process_modifications(df)
+        lf = process_modifications(lf)
 
         # Explosion des titulaires
-        df = explode_titulaires(df)
+        lf = explode_titulaires(lf)
 
         file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
         return_files.append(file)
         if not os.path.exists(f"{DIST_DIR}/clean"):
             os.mkdir(f"{DIST_DIR}/clean")
 
-        df: pl.DataFrame = lf.collect()
-        save_to_files(df, file, ["parquet"])
+        lf: pl.DataFrame = lf.collect()
+        save_to_files(lf, file, ["parquet"])
 
     return return_files
 

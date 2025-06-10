@@ -168,6 +168,14 @@
               "dureeMois": 1,
               "montant": 1,
               "id": 1,
+              "titulaires": [
+                {
+                  "titulaire": "typeIdentifiant"
+                },
+                {
+                  "titulaire": "id"
+                }
+              ],
               "datePublicationDonneesModification": "2023-06-20"
             }
           },
@@ -178,6 +186,43 @@
               "montant": 22545,
               "id": 2,
               "datePublicationDonneesModification": "2025-04-01"
+            }
+          },
+          {
+            "modification": {
+              "dateNotificationModification": "2026-04-01",
+              "dureeMois": 2,
+              "montant": 22540,
+              "id": 3,
+              "titulaires": [
+                {
+                  "titulaire": {
+                    "typeIdentifiant": "SIRET",
+                    "id": "58211867500054"
+                  }
+                },
+                {
+                  "titulaire": {
+                    "typeIdentifiant": "SIRET",
+                    "id": "05650171100115"
+                  }
+                },
+                {
+                  "titulaire": {
+                    "typeIdentifiant": "SIRET",
+                    "id": "88359829400030"
+                  }
+                }
+              ],
+              "datePublicationDonneesModification": "2026-04-01"
+            }
+          },
+          {
+            "modification": {
+              "dateNotificationModification": "2027-04-01",
+              "dureeMois": 100,
+              "id": 4,
+              "datePublicationDonneesModification": "2027-04-01"
             }
           }
         ],

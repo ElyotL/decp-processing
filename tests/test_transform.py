@@ -79,16 +79,36 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 1,
+                                "id": 101,
                                 "dateNotificationModification": date(2023, 1, 2),
                                 "datePublicationDonneesModification": date(2023, 1, 3),
                                 "montant": 1000,
                                 "dureeMois": 15,
+                                "titulaires": [
+                                    {
+                                        "titulaire": {
+                                            "typeIdentifiant": "SIRET",
+                                            "id": "00012",
+                                        }
+                                    },
+                                    {
+                                        "titulaire": {
+                                            "typeIdentifiant": "SIRET",
+                                            "id": "00013",
+                                        }
+                                    },
+                                    {
+                                        "titulaire": {
+                                            "typeIdentifiant": "SIRET",
+                                            "id": "00014",
+                                        }
+                                    },
+                                ],
                             }
                         },
                         {
                             "modification": {
-                                "id": 2,
+                                "id": 102,
                                 "dateNotificationModification": date(2023, 2, 1),
                                 "datePublicationDonneesModification": date(2023, 2, 2),
                                 "montant": 1500,
@@ -100,7 +120,7 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 4,
+                                "id": 101,
                                 "dateNotificationModification": date(2023, 2, 3),
                                 "datePublicationDonneesModification": date(2023, 2, 4),
                                 "dureeMois": 12,
@@ -111,7 +131,7 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 1,
+                                "id": 101,
                                 "dateNotificationModification": date(2023, 1, 10),
                                 "datePublicationDonneesModification": date(2023, 1, 12),
                                 "montant": 3000,
@@ -122,13 +142,14 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
+                                "id": 101,
                                 "dateNotificationModification": date(2023, 6, 2),
                                 "datePublicationDonneesModification": date(2023, 6, 3),
                             }
                         },
                         {
                             "modification": {
-                                "id": 2,
+                                "id": 102,
                                 "dateNotificationModification": date(2023, 6, 3),
                                 "datePublicationDonneesModification": date(2023, 6, 4),
                                 "montant": 1500,
@@ -154,17 +175,32 @@ class TestHandleModificationsMarche:
                 ],
                 "montant": [1000, 2000, 10000, 500, 5000],
                 "dureeMois": [12, 24, 36, 10, 36],
+                "titulaires": [
+                    [
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00011"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                    ],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0002"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0003"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0004"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0005"}}],
+                ],
             }
         )
 
         # Expected DataFrame
         expected_df = pl.DataFrame(
             {
-                "uid": [1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
-                "modification_id": [2, 1, 0, 1, 0, 1, 0, 2, 1, 0, 0],
+                "uid": [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
+                "modification_id": [2, 2, 2, 1, 1, 1, 0, 0, 1, 0, 1, 0, 2, 1, 0, 0],
                 "dateNotification": [
                     date(2023, 2, 1),
+                    date(2023, 2, 1),
+                    date(2023, 2, 1),
                     date(2023, 1, 2),
+                    date(2023, 1, 2),
+                    date(2023, 1, 2),
+                    date(2023, 1, 1),
                     date(2023, 1, 1),
                     date(2023, 2, 3),
                     date(2023, 2, 2),
@@ -177,7 +213,12 @@ class TestHandleModificationsMarche:
                 ],
                 "datePublicationDonnees": [
                     date(2023, 2, 2),
+                    date(2023, 2, 2),
+                    date(2023, 2, 2),
                     date(2023, 1, 3),
+                    date(2023, 1, 3),
+                    date(2023, 1, 3),
+                    date(2023, 1, 2),
                     date(2023, 1, 2),
                     date(2023, 2, 4),
                     date(2023, 2, 3),
@@ -190,6 +231,11 @@ class TestHandleModificationsMarche:
                 ],
                 "montant": [
                     1500,
+                    1500,
+                    1500,
+                    1000,
+                    1000,
+                    1000,
                     1000,
                     1000,
                     2000,
@@ -201,9 +247,31 @@ class TestHandleModificationsMarche:
                     500,
                     5000,
                 ],
-                "dureeMois": [18, 15, 12, 12, 24, 36, 36, 10, 10, 10, 36],
+                "dureeMois": [
+                    18,
+                    18,
+                    18,
+                    15,
+                    15,
+                    15,
+                    12,
+                    12,
+                    12,
+                    24,
+                    36,
+                    36,
+                    10,
+                    10,
+                    10,
+                    36,
+                ],
                 "donneesActuelles": [
                     True,
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
                     False,
                     False,
                     True,
@@ -214,6 +282,42 @@ class TestHandleModificationsMarche:
                     False,
                     False,
                     True,
+                ],
+                "titulaire_id": [
+                    "00012",
+                    "00013",
+                    "00014",
+                    "00012",
+                    "00013",
+                    "00014",
+                    "00011",
+                    "00012",
+                    "0002",
+                    "0002",
+                    "0003",
+                    "0003",
+                    "0004",
+                    "0004",
+                    "0004",
+                    "0005",
+                ],
+                "typeIdentifiant": [
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
+                    "SIRET",
                 ],
             }
         )
