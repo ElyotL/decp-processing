@@ -223,7 +223,17 @@ class TestHandleModificationsMarche:
         # Call the function
         result_df = replace_by_modification_data(df)
 
-        print(result_df)
+        print(
+            expected_df["uid", "dateNotification", "montant", "modification_id"]
+            .to_pandas()
+            .to_string()
+        )
+
+        print(
+            result_df["uid", "dateNotification", "montant", "modification_id"]
+            .to_pandas()
+            .to_string()
+        )
         # Assert the result matches the expected DataFrame
         assert_frame_equal(
             result_df, expected_df, check_column_order=False, check_dtypes=False
