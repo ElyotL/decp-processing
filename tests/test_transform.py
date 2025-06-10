@@ -218,6 +218,8 @@ class TestHandleModificationsMarche:
             }
         )
 
+        expected_df = expected_df.sort(by=["uid", "dateNotification"], descending=False)
+
         # Call the function
         result_df = replace_by_modification_data(df)
 
