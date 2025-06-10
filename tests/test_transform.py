@@ -79,7 +79,7 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 101,
+                                "id": 1,
                                 "dateNotificationModification": date(2023, 1, 2),
                                 "datePublicationDonneesModification": date(2023, 1, 3),
                                 "montant": 1000,
@@ -88,7 +88,7 @@ class TestHandleModificationsMarche:
                         },
                         {
                             "modification": {
-                                "id": 102,
+                                "id": 2,
                                 "dateNotificationModification": date(2023, 2, 1),
                                 "datePublicationDonneesModification": date(2023, 2, 2),
                                 "montant": 1500,
@@ -100,7 +100,7 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 101,
+                                "id": 4,
                                 "dateNotificationModification": date(2023, 2, 3),
                                 "datePublicationDonneesModification": date(2023, 2, 4),
                                 "dureeMois": 12,
@@ -111,7 +111,7 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 101,
+                                "id": 1,
                                 "dateNotificationModification": date(2023, 1, 10),
                                 "datePublicationDonneesModification": date(2023, 1, 12),
                                 "montant": 3000,
@@ -122,14 +122,13 @@ class TestHandleModificationsMarche:
                     [
                         {
                             "modification": {
-                                "id": 101,
                                 "dateNotificationModification": date(2023, 6, 2),
                                 "datePublicationDonneesModification": date(2023, 6, 3),
                             }
                         },
                         {
                             "modification": {
-                                "id": 102,
+                                "id": 2,
                                 "dateNotificationModification": date(2023, 6, 3),
                                 "datePublicationDonneesModification": date(2023, 6, 4),
                                 "montant": 1500,
