@@ -103,6 +103,8 @@ def fix_data_types(df: pl.LazyFrame):
         # "montantModificationActeSousTraitance": pl.Float64,
         "tauxAvance": pl.Float64,
         # "variationPrixActeSousTraitance": pl.Float64,
+        "origineFrance": pl.Float64,
+        "origineUE": pl.Float64,
     }
 
     for column, dtype in numeric_dtypes.items():
@@ -133,7 +135,4 @@ def fix_data_types(df: pl.LazyFrame):
         )
     )
 
-    df = df.with_columns(
-        pl.col(["origineFrance", "origineUE"]).cast(pl.Boolean)
-    )
     return df
