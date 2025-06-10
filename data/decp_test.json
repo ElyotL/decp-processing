@@ -577,8 +577,8 @@
         "titulaires": [
           {
             "titulaire": {
-              "typeIdentifiant": "SIRET",
-              "id": "91824625700011"
+              "id": "91824625700011",
+              "typeIdentifiant": "SIRET"
             }
           }
         ],

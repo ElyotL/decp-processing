@@ -1,9 +1,8 @@
-from httpx import post
-import json
 from os import getenv
-from config import DIST_DIR
 
-from jedi.api import project
+from httpx import post
+
+from config import DIST_DIR
 
 
 def update_resource(api, dataset_id, resource_id, file_path, api_key):
@@ -16,17 +15,6 @@ def update_resource(api, dataset_id, resource_id, file_path, api_key):
 
 
 def publish_to_datagouv(context: str):
-    files = {
-        "datalab": [
-            "datalab.sqlite",
-        ],
-        "decp.info": [
-            "decp-sans-titulaires.parquet",
-            "decp-sans-titulaires.csv",
-            "datapackage.json",
-            # "decp.sqlite",
-        ],
-    }
     api_key = getenv("DATAGOUVFR_API_KEY")
     api = "https://www.data.gouv.fr/api/1"
     dataset_id = "608c055b35eb4e6ee20eb325"
@@ -66,22 +54,19 @@ def publish_to_datagouv(context: str):
         #     "resource_id": "c6b08d03-7aa4-4132-b5b2-fd76633feecc",
         #     "context": "decp",
         # },
-        {
-            "file": f"{DIST_DIR}/datapackage.json",
-            "resource_id": "65194f6f-e273-4067-8075-56f072d56baf",
-            "context": "decp",
-        },
+        # {
+        #     "file": f"{DIST_DIR}/datapackage.json",
+        #     "resource_id": "65194f6f-e273-4067-8075-56f072d56baf",
+        #     "context": "decp",
+        # },
         # {"file": f"{DIST_DIR}/statistiques.csv", "resource_id": "8ded94de-3b80-4840-a5bb-7faad1c9c234"},
     ]
 
     for upload in uploads:
-        print(f"Mise à jour de {upload['file']}...")
         if context == upload["context"]:
-            print(
-                json.dumps(
-                    update_resource(
-                        api, dataset_id, upload["resource_id"], upload["file"], api_key
-                    ),
-                    indent=4,
-                )
+            print(f"Mise à jour de {upload['file']}...")
+            result = update_resource(
+                api, dataset_id, upload["resource_id"], upload["file"], api_key
             )
+            if result["success"] is True:
+                print("OK")

@@ -1,15 +1,15 @@
-import polars as pl
-from httpx import get
-import os
 import json
-
-from polars.polars import ColumnNotFoundError
-from prefect import task
+import os
 from pathlib import Path
 
+import polars as pl
+from httpx import get
+from polars.polars import ColumnNotFoundError
+from prefect import task
+
+from config import DATE_NOW, DECP_JSON_FILES, DIST_DIR
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
-from config import DIST_DIR, DECP_JSON_FILES, DATE_NOW
 
 
 @task(retries=5, retry_delay_seconds=5)
@@ -50,7 +50,9 @@ def get_decp_json() -> list:
     date_now = DATE_NOW
 
     return_files = []
+    downloaded_files = []
     artefact = []
+
     for json_file in json_files:
         artifact_row = {}
         if json_file["process"] is True:
@@ -76,22 +78,24 @@ def get_decp_json() -> list:
             df: pl.DataFrame = pl.json_normalize(
                 path,
                 strict=False,
+                # Pas de détection des dtypes, tout est pl.String pour commencer.
                 infer_schema_length=10000,
-                encoder="utf8",
-                separator="_",
+                # encoder="utf8",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets
+                separator="_",
             )
 
             artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
             artifact_row["download_date"] = date_now
+            artifact_row["columns"] = sorted(df.columns)
             artifact_row["column_number"] = len(df.columns)
             artifact_row["row_number"] = df.height
 
             artefact.append(artifact_row)
 
             df = df.with_columns(
-                pl.lit(f"data.gouv.fr {filename}.json").alias("source_open_data")
+                pl.lit(f"data.gouv.fr {filename}.json").alias("sourceOpenData")
             )
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
@@ -141,17 +145,15 @@ def get_decp_json() -> list:
             save_to_files(df, file, ["parquet"])
 
             return_files.append(file)
+            downloaded_files.append(filename + ".json")
 
-    # Stock les statistiques dans prefect cloud
+    # Stock les statistiques dans prefect
     create_table_artifact(
         table=artefact,
         key="datagouvfr-json-resources",
         description=f"Les ressources JSON des DECP consolidées au format JSON ({date_now})",
     )
+    # Stocke la liste des fichiers pour la réutiliser plus tard pour la création d'un artefact
+    os.environ["downloaded_files"] = ",".join(downloaded_files)
+
     return return_files
-
-
-def get_stats():
-    url = "https://www.data.gouv.fr/fr/datasets/r/8ded94de-3b80-4840-a5bb-7faad1c9c234"
-    df_stats = pl.read_csv(url, index_col=None)
-    return df_stats

@@ -1,6 +1,6 @@
 [project]
 name = "decp-processing"
-description = "An introductory project to Prefect"
+description = "Traitement des données des marchés publics français."
 version = "2.0.1"
 requires-python = ">= 3.9"
 authors = [
@@ -9,13 +9,12 @@ authors = [
 dependencies = [
     "python-dotenv",
     "pandas",
-    "polars",
+    "polars==1.27.0",
     "pyarrow",
     "tableschema",
     "frictionless==4.40.11",
-    "datapackage-to-datasette",
     "ipykernel",
-    "prefect",
+    "prefect==3.3.3",
 ]
 
 [project.optional-dependencies]
@@ -34,7 +33,8 @@ testpaths = [
 ]
 env = [
     "DECP_JSON_FILES_PATH=data/decp_json_files_test.json",
-    "PREFECT_API_URL="
+    "PREFECT_API_URL=",
+    "DECP_PROCESSING_PUBLISH="
 ]
 addopts = "-p no:warnings"
 

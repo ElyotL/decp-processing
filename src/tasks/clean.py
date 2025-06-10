@@ -1,9 +1,13 @@
-import polars as pl
 import os
-from tasks.output import save_to_files
+
+import polars as pl
+import polars.selectors as cs
 from prefect import task
 from tasks.transform import explode_titulaires, process_modifications
+
 from config import DIST_DIR
+from tasks.output import save_to_files
+from tasks.transform import explode_titulaires
 
 
 @task
@@ -14,10 +18,10 @@ def clean_decp_json(files: list):
         # CLEAN DATA
         #
 
-        df = pl.scan_parquet(f"{file}.parquet")
+        lf: pl.LazyFrame = pl.scan_parquet(f"{file}.parquet")
 
         # Colonnes exclues pour l'instant
-        # df = df.rename({
+        # lf = df.rename({
         #     "typesPrix_typePrix": "typesPrix",
         #     "considerationsEnvironnementales_considerationEnvironnementale": "considerationsEnvironnementales",
         #     "considerationsSociales_considerationSociale": "considerationsSociales",
@@ -26,13 +30,13 @@ def clean_decp_json(files: list):
         # })
 
         # Remplacement des valeurs nulles
-        df = df.with_columns(pl.col(pl.String).replace("NC", None))
+        lf = lf.with_columns(pl.col(pl.String).replace("NC", None))
         # Nettoyage des identifiants de marchés
-        df = df.with_columns(pl.col("id").str.replace_all(r"[ ,\\./]", "_"))
+        lf = lf.with_columns(pl.col("id").str.replace_all(r"[ ,\\./]", "_"))
 
         # Ajout du champ uid
         # TODO: à déplacer autre part, dans transform
-        df = df.with_columns((pl.col("acheteur_id") + pl.col("id")).alias("uid"))
+        lf = lf.with_columns((pl.col("acheteur_id") + pl.col("id")).alias("uid"))
 
         # Suppression des lignes en doublon par UID (acheteur id + id)
         # Exemple : 20005584600014157140791205100
@@ -57,21 +61,21 @@ def clean_decp_json(files: list):
         }
 
         # Using replace_many for efficient replacement of multiple date values
-        df = df.with_columns(
+        lf = lf.with_columns(
             pl.col(["datePublicationDonnees", "dateNotification"])
             .str.replace_many(date_replacements)
             .cast(pl.Utf8)
         )
 
         # Nature
-        df = df.with_columns(
+        lf = lf.with_columns(
             pl.col("nature").str.replace_many(
                 {"Marche": "Marché", "subsequent": "subséquent"}
             )
         )
 
         # Fix datatypes
-        df = fix_data_types(df)
+        lf = fix_data_types(lf)
 
         # Explosion des modifications
         df = process_modifications(df)
@@ -84,7 +88,7 @@ def clean_decp_json(files: list):
         if not os.path.exists(f"{DIST_DIR}/clean"):
             os.mkdir(f"{DIST_DIR}/clean")
 
-        df = df.collect()
+        df: pl.DataFrame = lf.collect()
         save_to_files(df, file, ["parquet"])
 
     return return_files
@@ -108,10 +112,12 @@ def fix_data_types(df: pl.LazyFrame):
     }
 
     for column, dtype in numeric_dtypes.items():
+        print("Fixing column", column, "...")
         # Les valeurs qui ne sont pas des chiffres sont converties en null
         df = df.with_columns(pl.col(column).cast(dtype, strict=False))
 
     # Convert date columns to datetime using str.strptime
+    print("Fixing dates...")
     df = df.with_columns(
         # Les valeurs qui ne sont pas des dates sont converties en null
         pl.col(
@@ -129,10 +135,16 @@ def fix_data_types(df: pl.LazyFrame):
     )
 
     # Champs booléens
+    print("Fixing booleans...")
+    cols = ("sousTraitanceDeclaree", "attributionAvance", "marcheInnovant")
+    str_cols = cs.by_name(cols) & cs.string()
+    float_cols = cs.by_name(cols) & cs.float()
     df = df.with_columns(
-        pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
-            "true"
-        )
-    )
-
+        pl.when(str_cols.str.to_lowercase() == "true")
+        .then(True)
+        .when(str_cols.str.to_lowercase() == "false")
+        .then(False)
+        .otherwise(None)
+        .name.keep()
+    ).with_columns(float_cols.fill_nan(None).cast(pl.Boolean).name.keep())
     return df
