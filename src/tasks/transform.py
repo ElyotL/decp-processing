@@ -81,32 +81,27 @@ def replace_by_modification_data(df: pl.DataFrame):
     """
 
     # Étape 1: Créer une copie du DataFrame initial sans la colonne "modifications"
-    df_base = df.select([col for col in df.columns if col != "modifications"])
+    df_base = df.select(pl.all().exclude("modifications"))
 
     # Étape 2: Explode le DataFrame pour avoir une ligne par modification
     df_exploded = (
-        df.select("uid", "modifications").explode("modifications").drop_nulls()
+        df.select("uid", "modifications")
+        .explode("modifications")
+        .drop_nulls()
+        .with_columns(pl.col("modifications").struct.field("modification"))
     )
 
     # Étape 3: Extraire les données des modifications
     df_mods = df_exploded.select(
         "uid",
-        pl.col("modifications")
-        .struct.field("modification")
+        pl.col("modification")
         .struct.field("dateNotificationModification")
         .alias("dateNotification"),
-        pl.col("modifications")
-        .struct.field("modification")
+        pl.col("modification")
         .struct.field("datePublicationDonneesModification")
         .alias("datePublicationDonnees"),
-        pl.col("modifications")
-        .struct.field("modification")
-        .struct.field("montant")
-        .alias("montant"),
-        pl.col("modifications")
-        .struct.field("modification")
-        .struct.field("dureeMois")
-        .alias("dureeMois"),
+        pl.col("modification").struct.field("montant").alias("montant"),
+        pl.col("modification").struct.field("dureeMois").alias("dureeMois"),
     )
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
@@ -128,14 +123,11 @@ def replace_by_modification_data(df: pl.DataFrame):
             (pl.col("uid").cum_count().over("uid") - 1).alias("modification_id")
         )
         .with_columns(
-            pl.when(
+            (
                 pl.col("modification_id") == pl.col("modification_id").max().over("uid")
-            )
-            .then(True)
-            .otherwise(False)
-            .alias("donneesActuelles")
+            ).alias("donneesActuelles")
         )
-        .sort(["uid"], descending=[False])
+        .sort(["uid", "dateNotification"], descending=False)
     )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
