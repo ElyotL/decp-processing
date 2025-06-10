@@ -132,8 +132,7 @@ def replace_by_modification_data(df: pl.DataFrame):
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
     df_concat = df_concat.with_columns(
-        pl.col("montant").fill_null(strategy="backward").over("uid"),
-        pl.col("dureeMois").fill_null(strategy="backward").over("uid"),
+        pl.col("montant", "dureeMois").fill_null(strategy="forward").over("uid")
     )
 
     # Étape 5: Ajouter les données du DataFrame de base
