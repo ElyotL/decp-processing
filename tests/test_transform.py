@@ -1,7 +1,7 @@
 import pytest
 import polars as pl
 from tasks.transform import (
-    remove_modfications_duplicates,
+    remove_modifications_duplicates,
     replace_by_modification_data,
     remove_suffixes_from_uid_column,
 )
@@ -55,7 +55,7 @@ class TestRemoveSuffixes:
 
 
 class TestHandleModificationsMarche:
-    def test_remove_modfications_duplicates(self):
+    def test_remove_modifications_duplicates(self):
         df = pl.LazyFrame(
             {
                 "uid": ["202401", "20240101", "20240102", "20240102", "2025010203"],
@@ -63,7 +63,7 @@ class TestHandleModificationsMarche:
             }
         )
 
-        cleaned_df = remove_modfications_duplicates(df).collect()
+        cleaned_df = remove_modifications_duplicates(df).collect()
         assert len(cleaned_df) == 3
         assert cleaned_df.sort("uid")["uid"].to_list() == sorted(
             ["202401", "20240102", "2025010203"]
@@ -191,16 +191,11 @@ class TestHandleModificationsMarche:
         # Expected DataFrame
         expected_df = pl.DataFrame(
             {
-                "uid": [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
-                "modification_id": [2, 2, 2, 1, 1, 1, 0, 0, 1, 0, 1, 0, 2, 1, 0, 0],
+                "uid": [1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
+                "modification_id": [2, 1, 0, 1, 0, 1, 0, 2, 1, 0, 0],
                 "dateNotification": [
                     date(2023, 2, 1),
-                    date(2023, 2, 1),
-                    date(2023, 2, 1),
                     date(2023, 1, 2),
-                    date(2023, 1, 2),
-                    date(2023, 1, 2),
-                    date(2023, 1, 1),
                     date(2023, 1, 1),
                     date(2023, 2, 3),
                     date(2023, 2, 2),
@@ -213,12 +208,7 @@ class TestHandleModificationsMarche:
                 ],
                 "datePublicationDonnees": [
                     date(2023, 2, 2),
-                    date(2023, 2, 2),
-                    date(2023, 2, 2),
                     date(2023, 1, 3),
-                    date(2023, 1, 3),
-                    date(2023, 1, 3),
-                    date(2023, 1, 2),
                     date(2023, 1, 2),
                     date(2023, 2, 4),
                     date(2023, 2, 3),
@@ -231,11 +221,6 @@ class TestHandleModificationsMarche:
                 ],
                 "montant": [
                     1500,
-                    1500,
-                    1500,
-                    1000,
-                    1000,
-                    1000,
                     1000,
                     1000,
                     2000,
@@ -249,12 +234,7 @@ class TestHandleModificationsMarche:
                 ],
                 "dureeMois": [
                     18,
-                    18,
-                    18,
                     15,
-                    15,
-                    15,
-                    12,
                     12,
                     12,
                     24,
@@ -267,11 +247,6 @@ class TestHandleModificationsMarche:
                 ],
                 "donneesActuelles": [
                     True,
-                    True,
-                    True,
-                    False,
-                    False,
-                    False,
                     False,
                     False,
                     True,
@@ -283,46 +258,26 @@ class TestHandleModificationsMarche:
                     False,
                     True,
                 ],
-                "titulaire_id": [
-                    "00012",
-                    "00013",
-                    "00014",
-                    "00012",
-                    "00013",
-                    "00014",
-                    "00011",
-                    "00012",
-                    "0002",
-                    "0002",
-                    "0003",
-                    "0003",
-                    "0004",
-                    "0004",
-                    "0004",
-                    "0005",
-                ],
-                "typeIdentifiant": [
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
-                    "SIRET",
+                "titulaires": [
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
+                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
+                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00011"}},
+                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0002"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0002"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0003"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0003"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0004"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0004"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0004"}}],
+                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0005"}}],
                 ],
             }
         )
-
-        expected_df = expected_df.sort(by=["uid", "dateNotification"], descending=False)
 
         # Call the function
         result_df = replace_by_modification_data(df)
