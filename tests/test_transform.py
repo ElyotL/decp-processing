@@ -109,7 +109,7 @@ class TestHandleModificationsMarche:
                         {
                             "modification": {
                                 "id": 102,
-                                "dateNotificationModification": date(2023, 2, 1),
+                                "dateNotificationModification": date(2023, 1, 2),
                                 "datePublicationDonneesModification": date(2023, 2, 2),
                                 "montant": 1500,
                                 "dureeMois": 18,
@@ -194,7 +194,7 @@ class TestHandleModificationsMarche:
                 "uid": [1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5],
                 "modification_id": [2, 1, 0, 1, 0, 1, 0, 2, 1, 0, 0],
                 "dateNotification": [
-                    date(2023, 2, 1),
+                    date(2023, 1, 2),
                     date(2023, 1, 2),
                     date(2023, 1, 1),
                     date(2023, 2, 3),

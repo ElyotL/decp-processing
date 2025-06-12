@@ -141,9 +141,12 @@ def replace_by_modification_data(df: pl.DataFrame):
             how="vertical_relaxed",
         )
         .with_columns(
-            (pl.col("uid").cum_count().over("uid").cast(pl.Int64) - 1).alias(
-                "modification_id"
-            )
+            pl.col("dateNotification")
+            .rank(method="ordinal")
+            .over("uid")
+            .cast(pl.Int64)
+            .sub(1)
+            .alias("modification_id")
         )
         .with_columns(
             (
@@ -151,8 +154,8 @@ def replace_by_modification_data(df: pl.DataFrame):
             ).alias("donneesActuelles")
         )
         .sort(
-            ["uid", "modification_id"],
-            descending=[False, True],
+            ["uid", "dateNotification", "modification_id"],
+            descending=[False, True, True],
         )
     )
 
