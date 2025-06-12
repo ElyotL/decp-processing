@@ -121,7 +121,7 @@ def replace_by_modification_data(df: pl.DataFrame):
         .alias("datePublicationDonnees"),
         pl.col("modification").struct.field("montant").alias("montant"),
         pl.col("modification").struct.field("dureeMois").alias("dureeMois"),
-        pl.col("modifications").struct.field("modification").struct.field("titulaires").alias("titulaires")
+        pl.col("modification").struct.field("titulaires").alias("titulaires"),
     )
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
@@ -134,33 +134,46 @@ def replace_by_modification_data(df: pl.DataFrame):
                     "datePublicationDonnees",
                     "montant",
                     "dureeMois",
-                    "titulaires"
+                    "titulaires",
                 ),
                 df_mods,
             ],
             how="vertical_relaxed",
         )
         .with_columns(
-            (pl.col("uid").cum_count().over("uid").cast(pl.Int64) - 1).alias("modification_id")
+            (pl.col("uid").cum_count().over("uid").cast(pl.Int64) - 1).alias(
+                "modification_id"
+            )
         )
-        .with_columns(pl.when(pl.col("modification_id") == pl.col("modification_id").max().over("uid")).then(True).otherwise(False).alias("donneesActuelles"))
         .with_columns(
             (
                 pl.col("modification_id") == pl.col("modification_id").max().over("uid")
             ).alias("donneesActuelles")
         )
-        .sort(["uid", "modification_id"], descending=[False, True])
+        .sort(
+            ["uid", "modification_id"],
+            descending=[False, True],
+        )
     )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
     df_concat = df_concat.with_columns(
-        pl.col("montant", "dureeMois", "titulaires").fill_null(strategy="backward").over("uid")
+        pl.col("montant", "dureeMois", "titulaires")
+        .fill_null(strategy="backward")
+        .over("uid")
     )
 
     # Étape 5: Ajouter les données du DataFrame de base
     df_final = df_concat.join(
         df.drop(
-            ["dateNotification", "datePublicationDonnees", "montant", "dureeMois",  "titulaires", "modifications"]
+            [
+                "dateNotification",
+                "datePublicationDonnees",
+                "montant",
+                "dureeMois",
+                "titulaires",
+                "modifications",
+            ]
         ),
         on="uid",
         how="left",
@@ -212,7 +225,9 @@ def normalize_tables(df):
     df_marches_titulaires: pl.DataFrame = df.select(
         "uid", "titulaire_id", "titulaire_typeIdentifiant", "modification_id"
     )
-    df_marches_titulaires = df_marches_titulaires.rename({"uid": "marche_uid", "modification_id": "marche_modification_id"})
+    df_marches_titulaires = df_marches_titulaires.rename(
+        {"uid": "marche_uid", "modification_id": "marche_modification_id"}
+    )
     save_to_sqlite(
         df_marches_titulaires,
         "datalab",

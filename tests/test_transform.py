@@ -259,14 +259,20 @@ class TestHandleModificationsMarche:
                     True,
                 ],
                 "titulaires": [
-                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
-                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
-                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}}],
-                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
-                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
-                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}}],
-                    [{"titulaire": {"typeIdentifiant": "SIRET", "id": "00011"}},
-                     {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}}],
+                    [
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}},
+                    ],
+                    [
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00013"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00014"}},
+                    ],
+                    [
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00011"}},
+                        {"titulaire": {"typeIdentifiant": "SIRET", "id": "00012"}},
+                    ],
                     [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0002"}}],
                     [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0002"}}],
                     [{"titulaire": {"typeIdentifiant": "SIRET", "id": "0003"}}],

@@ -66,30 +66,32 @@
           ]
         },
         "actesSousTraitance": [
-  {
-    "acteSousTraitance": {
-      "id": 1,
-      "sousTraitant": {
-        "id": "214356",
-        "typeIdentifiant": "SIRET"
-      },
-      "dureeMois": 12,
-      "dateNotification": "2023-10-11",
-      "montant": 123456.89,
-      "variationPrix": "Révisable",
-      "datePublicationDonnees": "2023-10-12"
-    }
-  }
-], "modificationsActesSousTraitance":   [
-  {
-    "modificationActeSousTraitance": {
-      "dureeMois": 6,
-      "montant": 392085,
-      "id": 1,
-      "dateNotificationModificationSousTraitance": "2024-07-16",
-      "datePublicationDonnees": "2024-10-03"
-    }
-  }],
+          {
+            "acteSousTraitance": {
+              "id": 1,
+              "sousTraitant": {
+                "id": "214356",
+                "typeIdentifiant": "SIRET"
+              },
+              "dureeMois": 12,
+              "dateNotification": "2023-10-11",
+              "montant": 123456.89,
+              "variationPrix": "Révisable",
+              "datePublicationDonnees": "2023-10-12"
+            }
+          }
+        ],
+        "modificationsActesSousTraitance": [
+          {
+            "modificationActeSousTraitance": {
+              "dureeMois": 6,
+              "montant": 392085,
+              "id": 1,
+              "dateNotificationModificationSousTraitance": "2024-07-16",
+              "datePublicationDonnees": "2024-10-03"
+            }
+          }
+        ],
         "modifications": [
           {
             "modification": {
