@@ -2,6 +2,7 @@ import os
 import zipfile
 
 import polars as pl
+import polars.selectors as cs
 from httpx import get
 from prefect import task
 
@@ -78,8 +79,8 @@ def normalize_tables(df):
 
     # ACHETEURS
 
-    df_acheteurs: pl.DataFrame = df.select("acheteur_id")
-    df_acheteurs = df_acheteurs.rename({"acheteur_id": "id"})
+    df_acheteurs: pl.DataFrame = df.select(cs.starts_with("acheteur"))
+    df_acheteurs = df_acheteurs.rename(lambda name: name.removeprefix("acheteur_"))
     df_acheteurs = df_acheteurs.unique().sort(by="id")
     save_to_sqlite(df_acheteurs, "datalab", "acheteurs", "id")
     del df_acheteurs
@@ -87,12 +88,10 @@ def normalize_tables(df):
     # TITULAIRES
 
     ## Table entreprises
-    df_titulaires: pl.DataFrame = df.select("titulaire_id", "titulaire_typeIdentifiant")
+    df_titulaires: pl.DataFrame = df.select(cs.starts_with("titulaire"))
 
     ### On garde les champs id et typeIdentifiant en clé primaire composite
-    df_titulaires = df_titulaires.rename(
-        {"titulaire_id": "id", "titulaire_typeIdentifiant": "typeIdentifiant"}
-    )
+    df_titulaires = df_titulaires.rename(lambda name: name.removeprefix("titulaire_"))
     df_titulaires = df_titulaires.unique().sort(by=["id"])
     save_to_sqlite(df_titulaires, "datalab", "entreprises", "id, typeIdentifiant")
     del df_titulaires
@@ -137,8 +136,6 @@ def concat_decp_json(files: list) -> pl.DataFrame:
 
 def setup_tableschema_columns(df: pl.DataFrame):
     # Ajout colonnes manquantes
-    df = df.with_columns(pl.lit("").alias("acheteur_nom"))  # TODO
-    df = df.with_columns(pl.lit("").alias("titulaire_denominationSociale"))  # TODO
     df = df.with_columns(pl.lit("").alias("lieuExecution_nom"))  # TODO
     df = df.with_columns(pl.lit("").alias("objetModification"))  # TODO
     df = df.with_columns(pl.lit("").alias("donneesActuelles"))  # TODO
