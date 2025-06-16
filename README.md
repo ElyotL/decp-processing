@@ -4,10 +4,12 @@ Projet de traitement et de publication de meilleures données sur les marchés p
 
 - code source de l'agrégation des données [fermé](https://github.com/139bercy/decp-rama-v2/blob/main/README.md)
 - documentation incomplète et éparpillée
-    - https://github.com/139bercy/decp-rama-v2/blob/main/README.md
-    - https://www.data.gouv.fr/fr/datasets/5cd57bf68b4c4179299eb0e9
-    - https://data.economie.gouv.fr/pages/donnees-essentielles-de-la-commande-publique/
+  - https://github.com/139bercy/decp-rama-v2/blob/main/README.md
+  - https://www.data.gouv.fr/fr/datasets/5cd57bf68b4c4179299eb0e9
+  - https://data.economie.gouv.fr/pages/donnees-essentielles-de-la-commande-publique/
 - schéma de données DECP 2 [complexe à utiliser](https://github.com/ColinMaudry/decp-processing/issues/4)
+
+Vous trouverez des informations sur le contexte, le cadre réglementaire et les données de la commande publique sur [le wiki](https://github.com/ColinMaudry/decp-processing/wiki).
 
 Ce projet se veut collaboratif et à l'écoute des besoins des usagers potentiels : entreprises, acteurs publics, journalistes, chercheurs et chercheuses, citoyens et citoyennes.
 
@@ -24,7 +26,6 @@ Vous pouvez...
 - les télécharger sur [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire/) (vous trouverez aussi plus d'informations sur ces données)
 - les visualiséer, les filtrer et télécharger sur [decp.info](https://decp.info)
 
-
 ## Pré-requis
 
 - Python 3.8 ou plus récent
@@ -34,6 +35,7 @@ Vous pouvez...
 ## Installation
 
 ### En utilisant un environnement virtuel (recommandé)
+
 Je vous recommande d'utiliser un environnement virtuel Python pour isoler l'installation des dépendances :
 
 ```bash
@@ -86,7 +88,9 @@ Il suppose également que le work pool "local" a été créé.
 ```bash
 systemctl enable prefect-worker.service
 ```
+
 5. Démarrer le service
+
 ```bash
 systemctl start prefect-worker.service
 ```
@@ -96,14 +100,17 @@ Un nouveau worker doit apparaître dans l'interface de gestion de prefect.
 ### Avec Docker (sous Windows)
 
 Construire et lancer le container
+
 ```bash
 ./script/docker_build_and_run.bat
 ```
 
 Démarrer le serveur prefect une fois dans le container
+
 ```bash
 ./script/start_server_in_docker.sh
 ```
+
 Le serveur est accessible sur le navigateur à l'adresse http://127.0.0.1:4200/
 
 ## Lancer le traitement des données (pour le développement en local)
@@ -128,11 +135,14 @@ Attention, la version de prefect du client utilisé pour le déploiement et cell
 
 1. Suivre les instructions de la section "Installation sur le serveur pour les déploiements"
 2. Vérifier que le `.env` est bien configuré, ce sont ces variables qui seront utilisées par les run du serveur.
-2. Déployer sur le serveur :
+3. Déployer sur le serveur :
+
 ```bash
 python src/deploy.py
 ```
+
 4. Le run se lancera tous les jours selon la configuration cron. Si tu souhaites exécuter le run maintenant :
+
 ```bash
 prefect deployment run decp-processing
 ```
