@@ -6,7 +6,7 @@ from prefect import flow, task
 
 from config import BASE_DF_COLUMNS, DECP_PROCESSING_PUBLISH, DIST_DIR, SIRENE_DATA_DIR
 from tasks.analyse import generate_stats
-from tasks.clean import clean_decp_json
+from tasks.clean import clean_decp
 from tasks.enrich import add_unite_legale_data
 from tasks.get import get_decp_json
 from tasks.output import (
@@ -35,7 +35,7 @@ def get_clean_concat():
     files = get_decp_json()
 
     print("Nettoyage des données source et typage des colonnes...")
-    files = clean_decp_json(files)
+    files = clean_decp(files)
 
     print("Fusion des dataframes...")
     df = concat_decp_json(files)

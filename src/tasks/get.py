@@ -8,6 +8,7 @@ from polars.polars import ColumnNotFoundError
 from prefect import task
 
 from config import DATE_NOW, DECP_JSON_FILES, DIST_DIR
+from tasks.clean import clean_decp_json
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
 
@@ -40,55 +41,6 @@ def get_json_metadata(json_file: dict) -> dict:
     api_url = f"http://www.data.gouv.fr/api/1/datasets/5cd57bf68b4c4179299eb0e9/resources/{resource_id}/"
     json_metadata = get(api_url, follow_redirects=True).json()
     return json_metadata
-
-
-def clean_json(input_json_):
-    """
-    Nettoyage des données JSON des DECP pour les modifications des titulaires.
-    Suppression des données qui ne correspondent pas au format attendu (ex: {"typeIdentifiant": "SIRET", "id": "12345678901234"}).
-    """
-    clean_json = []
-    titulaires_cleaned_cpt = 0
-    for entry in input_json_:
-        # entry = {} représentant un marché
-        modifications_entries = entry.get("modifications", [])
-        # modifications_entries = [] représentant les modifications du marché
-        clean_modifications_entries = []
-        for modification_entry in modifications_entries:
-            # modification_entry = {} représentant une modification du marché
-            modification_entry_clean = modification_entry["modification"]
-            if "titulaires" in modification_entry_clean.keys():
-                modification_titulaires_clean = []
-                for modification_titulaire in modification_entry_clean.get(
-                    "titulaires", []
-                ):
-                    # mofification_titulaire = {} représentant un titulaire de la modification
-                    if isinstance(modification_titulaire["titulaire"], dict):
-                        # Si le titulaire est un dictionnaire, on récupère l'id et le typeIdentifiant
-                        modification_titulaires_clean.append(
-                            {
-                                "titulaire": {
-                                    "typeIdentifiant": modification_titulaire[
-                                        "titulaire"
-                                    ].get("typeIdentifiant"),
-                                    "id": modification_titulaire["titulaire"].get("id"),
-                                }
-                            }
-                        )
-                if modification_titulaires_clean:
-                    modification_entry_clean["titulaires"] = (
-                        modification_titulaires_clean
-                    )
-                else:
-                    modification_entry_clean.pop("titulaires", None)
-                    titulaires_cleaned_cpt += 1
-            clean_modifications_entries.append(
-                {"modification": modification_entry_clean}
-            )
-        entry["modifications"] = clean_modifications_entries
-        clean_json.append(entry)
-    print(f"Nombre de titulaires nettoyés : {titulaires_cleaned_cpt}")
-    return clean_json
 
 
 @task
@@ -125,8 +77,8 @@ def get_decp_json() -> list:
             filename = json_file["file_name"]
             path = decp_json["marches"]["marche"]
 
-            # Nettoyage et simplification des données JSON
-            path = clean_json(path)
+            # Nettoyage des modifications de titulaires
+            path = clean_decp_json(path)
 
             df: pl.DataFrame = pl.json_normalize(
                 path,
