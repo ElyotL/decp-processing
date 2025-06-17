@@ -1,6 +1,12 @@
+<<<<<<< paths-config
 from pathlib import Path
+=======
+import datetime
+import os
+>>>>>>> main
 
 import polars as pl
+import polars.selectors as cs
 from prefect import task
 
 from config import DIST_DIR
@@ -110,31 +116,42 @@ def fix_data_types(df: pl.LazyFrame):
         df = df.with_columns(pl.col(column).cast(dtype, strict=False))
 
     # Convert date columns to datetime using str.strptime
+    dates_col = [
+        "dateNotification",
+        # "dateNotificationActeSousTraitance",
+        # "dateNotificationModificationModification",
+        # "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
+        "datePublicationDonnees",
+        # "datePublicationDonneesActeSousTraitance",
+        # "datePublicationDonneesModificationActeSousTraitance",
+        # "datePublicationDonneesModificationModification",
+    ]
     print("Fixing dates...")
     df = df.with_columns(
         # Les valeurs qui ne sont pas des dates sont converties en null
-        pl.col(
-            [
-                "dateNotification",
-                # "dateNotificationActeSousTraitance",
-                # "dateNotificationModificationModification",
-                # "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
-                "datePublicationDonnees",
-                # "datePublicationDonneesActeSousTraitance",
-                # "datePublicationDonneesModificationActeSousTraitance",
-                # "datePublicationDonneesModificationModification",
-            ]
-        ).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
+        pl.col(dates_col).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
     )
 
+    # Suppression dans dates dans le futur
+    for col in dates_col:
+        df = df.with_columns(
+            pl.when(pl.col(col) > datetime.datetime.now())
+            .then(None)
+            .otherwise(pl.col(col))
+            .alias(col)
+        )
+
     # Champs booléens
-
-    # TODO: À améliorer
-    # print("Fixing booleans...")
-    # df = df.with_columns(
-    #     pl.col(["sousTraitanceDeclaree", "attributionAvance", "marcheInnovant"]).eq(
-    #         True
-    #     )
-    # )
-
+    print("Fixing booleans...")
+    cols = ("sousTraitanceDeclaree", "attributionAvance", "marcheInnovant")
+    str_cols = cs.by_name(cols) & cs.string()
+    float_cols = cs.by_name(cols) & cs.float()
+    df = df.with_columns(
+        pl.when(str_cols.str.to_lowercase() == "true")
+        .then(True)
+        .when(str_cols.str.to_lowercase() == "false")
+        .then(False)
+        .otherwise(None)
+        .name.keep()
+    ).with_columns(float_cols.fill_nan(None).cast(pl.Boolean).name.keep())
     return df

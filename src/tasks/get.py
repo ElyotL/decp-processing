@@ -136,8 +136,6 @@ def get_decp_json() -> list[Path]:
                     absent_columns.append(col)
                     pass
 
-            if len(absent_columns) > 0:
-                print(f"{filename}: colonnes à supprimer absentes : {absent_columns}")
             print(f"[{filename}]", df.shape)
 
             file_path = DIST_DIR / "get" / f"{filename}_{date_now}"
