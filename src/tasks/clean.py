@@ -1,3 +1,4 @@
+import datetime
 import os
 
 import polars as pl
@@ -117,22 +118,30 @@ def fix_data_types(df: pl.LazyFrame):
         df = df.with_columns(pl.col(column).cast(dtype, strict=False))
 
     # Convert date columns to datetime using str.strptime
+    dates_col = [
+        "dateNotification",
+        # "dateNotificationActeSousTraitance",
+        # "dateNotificationModificationModification",
+        # "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
+        "datePublicationDonnees",
+        # "datePublicationDonneesActeSousTraitance",
+        # "datePublicationDonneesModificationActeSousTraitance",
+        # "datePublicationDonneesModificationModification",
+    ]
     print("Fixing dates...")
     df = df.with_columns(
         # Les valeurs qui ne sont pas des dates sont converties en null
-        pl.col(
-            [
-                "dateNotification",
-                # "dateNotificationActeSousTraitance",
-                # "dateNotificationModificationModification",
-                # "dateNotificationModificationSousTraitanceModificationActeSousTraitance",
-                "datePublicationDonnees",
-                # "datePublicationDonneesActeSousTraitance",
-                # "datePublicationDonneesModificationActeSousTraitance",
-                # "datePublicationDonneesModificationModification",
-            ]
-        ).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
+        pl.col(dates_col).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
     )
+
+    # Suppression dans dates dans le futur
+    for col in dates_col:
+        df = df.with_columns(
+            pl.when(pl.col(col) > datetime.datetime.now())
+            .then(None)
+            .otherwise(pl.col(col))
+            .alias(col)
+        )
 
     # Champs booléens
     print("Fixing booleans...")
