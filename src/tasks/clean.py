@@ -1,5 +1,9 @@
+<<<<<<< paths-config
+from pathlib import Path
+=======
 import datetime
 import os
+>>>>>>> main
 
 import polars as pl
 import polars.selectors as cs
@@ -11,7 +15,7 @@ from tasks.transform import explode_titulaires
 
 
 @task
-def clean_decp_json(files: list):
+def clean_decp_json(files: list[Path]):
     return_files = []
     for file in files:
         #
@@ -81,13 +85,12 @@ def clean_decp_json(files: list):
         # Fix datatypes
         lf = fix_data_types(lf)
 
-        file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
-        return_files.append(file)
-        if not os.path.exists(f"{DIST_DIR}/clean"):
-            os.mkdir(f"{DIST_DIR}/clean")
+        output_file = DIST_DIR / "clean" / file.name
+        return_files.append(output_file)
+        output_file.parent.mkdir(exist_ok=True)
 
         df: pl.DataFrame = lf.collect()
-        save_to_files(df, file, ["parquet"])
+        save_to_files(df, output_file, ["parquet"])
 
     return return_files
 
