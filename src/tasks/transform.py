@@ -80,7 +80,9 @@ def remove_modifications_duplicates(df):
 
 
 def remove_suffixes_from_uid_column(df):
-    """Supprimer les suffixes des uid quand ce suffixe correspond au nombre de mofifications apportées au marché"""
+    """Supprimer les suffixes des uid quand ce suffixe correspond au nombre de mofifications apportées au marché.
+    Exemple : uid = [acheteur_id]12302 et le marché a deux modifications. uid => [acheteur_id]123.
+    """
     df = df.with_columns(
         expected_suffix=pl.col("modifications").list.len().cast(pl.Utf8).str.zfill(2)
     )
@@ -186,10 +188,10 @@ def replace_by_modification_data(df: pl.DataFrame):
     return df_final
 
 
-def process_modifications(df):
-    df = remove_modifications_duplicates(df)
-    df = replace_by_modification_data(df)
-    return df
+def process_modifications(lf: pl.LazyFrame):
+    lf = remove_modifications_duplicates(lf)
+    lf = replace_by_modification_data(lf)
+    return lf
 
 
 def normalize_tables(df):

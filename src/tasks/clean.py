@@ -77,7 +77,7 @@ def clean_decp(files: list):
         # Fix datatypes
         lf = fix_data_types(lf)
 
-        # Explosion des modifications
+        # Explosion et traitement des modifications
         lf = process_modifications(lf)
 
         # Explosion des titulaires
