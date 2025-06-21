@@ -5,7 +5,7 @@ from prefect import flow, task
 
 from config import BASE_DF_COLUMNS, DECP_PROCESSING_PUBLISH, DIST_DIR
 from tasks.analyse import generate_stats
-from tasks.clean import clean_decp_json
+from tasks.clean import clean_decp
 from tasks.enrich import add_unite_legale_data
 from tasks.get import get_decp_json
 from tasks.output import (
@@ -26,15 +26,12 @@ from tasks.transform import (
 
 @task(log_prints=True)
 def get_clean_concat():
-    if DIST_DIR.exists():
-        shutil.rmtree(DIST_DIR)
-    DIST_DIR.mkdir(exist_ok=True)
 
     print("Récupération des données source...")
     files = get_decp_json()
 
     print("Nettoyage des données source et typage des colonnes...")
-    files = clean_decp_json(files)
+    files = clean_decp(files)
 
     print("Fusion des dataframes...")
     df = concat_decp_json(files)
@@ -45,6 +42,10 @@ def get_clean_concat():
     print("Génération de l'artefact (statistiques) sur le base df...")
     df: pl.DataFrame = lf.collect(engine="streaming")
     generate_stats(df)
+
+    if os.path.exists(DIST_DIR):
+        shutil.rmtree(DIST_DIR)
+    os.makedirs(DIST_DIR)
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
     df: pl.DataFrame = sort_columns(df, BASE_DF_COLUMNS)
@@ -63,7 +64,7 @@ def make_datalab_data():
         df,
         "datalab",
         "data.gouv.fr.2022.clean",
-        "uid, titulaire_id, titulaire_typeIdentifiant",
+        "uid, titulaire_id, titulaire_typeIdentifiant, modification_id",
     )
 
     print("Normalisation des tables...")
@@ -114,7 +115,7 @@ def decp_processing():
     get_clean_concat()
 
     # Fichiers dédiés à l'Open Data et decp.info
-    make_decpinfo_data()
+    # make_decpinfo_data() -- Erreur de versions des packages : polars.exceptions.ModuleUpgradeRequiredError: pandas >= 2.2 requires sqlalchemy 2.0 or higher (found 1.4.54)
 
     # Base de données SQLite dédiée aux activités du Datalab d'Anticor
     make_datalab_data()

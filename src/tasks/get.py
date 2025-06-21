@@ -7,6 +7,8 @@ from httpx import get
 from polars.polars import ColumnNotFoundError
 from prefect import task
 
+from tasks.clean import clean_decp_json
+
 from config import DATA_DIR, DATE_NOW, DECP_JSON_FILES, DIST_DIR
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
@@ -75,11 +77,15 @@ def get_decp_json() -> list[Path]:
 
             filename = json_file["file_name"]
             path = decp_json["marches"]["marche"]
+
+            # Nettoyage des modifications de titulaires
+            path = clean_decp_json(path)
+
             df: pl.DataFrame = pl.json_normalize(
                 path,
                 strict=False,
                 # Pas de détection des dtypes, tout est pl.String pour commencer.
-                infer_schema_length=10000,
+                infer_schema_length=500000,
                 # encoder="utf8",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets
@@ -108,7 +114,6 @@ def get_decp_json() -> list[Path]:
                 "considerationsSociales_considerationSociale",
                 "techniques_technique",
                 "modalitesExecution_modaliteExecution",
-                "modifications",
                 "actesSousTraitance",
                 "modificationsActesSousTraitance",
                 # Champs de concessions

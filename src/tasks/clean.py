@@ -7,10 +7,11 @@ from prefect import task
 
 from config import DIST_DIR
 from tasks.output import save_to_files
-from tasks.transform import explode_titulaires
+from tasks.transform import explode_titulaires, process_modifications
 
 
 @task
+
 def clean_decp_json(files: list[Path]):
     return_files = []
     for file in files:
@@ -19,10 +20,6 @@ def clean_decp_json(files: list[Path]):
         #
 
         lf: pl.LazyFrame = pl.scan_parquet(f"{file}.parquet")
-
-        # Explosion des titulaires
-        print("Explode titulaires...")
-        lf = explode_titulaires(lf)
 
         # Colonnes exclues pour l'instant
         # lf = df.rename({
@@ -81,6 +78,12 @@ def clean_decp_json(files: list[Path]):
         # Fix datatypes
         lf = fix_data_types(lf)
 
+        # Explosion et traitement des modifications
+        lf = process_modifications(lf)
+
+        # Explosion des titulaires
+        lf = explode_titulaires(lf)
+
         output_file = DIST_DIR / "clean" / file.name
         return_files.append(output_file)
         output_file.parent.mkdir(exist_ok=True)
@@ -104,6 +107,8 @@ def fix_data_types(df: pl.LazyFrame):
         # "montantModificationActeSousTraitance": pl.Float64,
         "tauxAvance": pl.Float64,
         # "variationPrixActeSousTraitance": pl.Float64,
+        "origineFrance": pl.Float64,
+        "origineUE": pl.Float64,
     }
 
     for column, dtype in numeric_dtypes.items():
@@ -151,3 +156,52 @@ def fix_data_types(df: pl.LazyFrame):
         .name.keep()
     ).with_columns(float_cols.fill_nan(None).cast(pl.Boolean).name.keep())
     return df
+
+
+def clean_decp_json(input_json_):
+    """
+    Nettoyage des données JSON des DECP pour les modifications des titulaires.
+    Suppression des données qui ne correspondent pas au format attendu (ex: {"typeIdentifiant": "SIRET", "id": "12345678901234"}).
+    """
+    clean_json = []
+    titulaires_cleaned_cpt = 0
+    for entry in input_json_:
+        # entry = {} représentant un marché
+        modifications_entries = entry.get("modifications", [])
+        # modifications_entries = [] représentant les modifications du marché
+        clean_modifications_entries = []
+        for modification_entry in modifications_entries:
+            # modification_entry = {} représentant une modification du marché
+            modification_entry_clean = modification_entry["modification"]
+            if "titulaires" in modification_entry_clean.keys():
+                modification_titulaires_clean = []
+                for modification_titulaire in modification_entry_clean.get(
+                    "titulaires", []
+                ):
+                    # mofification_titulaire = {} représentant un titulaire de la modification
+                    if isinstance(modification_titulaire["titulaire"], dict):
+                        # Si le titulaire est un dictionnaire, on récupère l'id et le typeIdentifiant
+                        modification_titulaires_clean.append(
+                            {
+                                "titulaire": {
+                                    "typeIdentifiant": modification_titulaire[
+                                        "titulaire"
+                                    ].get("typeIdentifiant"),
+                                    "id": modification_titulaire["titulaire"].get("id"),
+                                }
+                            }
+                        )
+                if modification_titulaires_clean:
+                    modification_entry_clean["titulaires"] = (
+                        modification_titulaires_clean
+                    )
+                else:
+                    modification_entry_clean.pop("titulaires", None)
+                    titulaires_cleaned_cpt += 1
+            clean_modifications_entries.append(
+                {"modification": modification_entry_clean}
+            )
+        entry["modifications"] = clean_modifications_entries
+        clean_json.append(entry)
+    print(f"Nombre de titulaires nettoyés : {titulaires_cleaned_cpt}")
+    return clean_json
