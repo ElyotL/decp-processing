@@ -1,5 +1,5 @@
 import datetime
-import os
+from pathlib import Path
 
 import polars as pl
 import polars.selectors as cs
@@ -11,7 +11,8 @@ from tasks.transform import explode_titulaires, process_modifications
 
 
 @task
-def clean_decp(files: list):
+
+def clean_decp_json(files: list[Path]):
     return_files = []
     for file in files:
         #
@@ -83,13 +84,12 @@ def clean_decp(files: list):
         # Explosion des titulaires
         lf = explode_titulaires(lf)
 
-        file = f"{DIST_DIR}/clean/{file.split('/')[-1]}"
-        return_files.append(file)
-        if not os.path.exists(f"{DIST_DIR}/clean"):
-            os.mkdir(f"{DIST_DIR}/clean")
+        output_file = DIST_DIR / "clean" / file.name
+        return_files.append(output_file)
+        output_file.parent.mkdir(exist_ok=True)
 
-        lf: pl.DataFrame = lf.collect()
-        save_to_files(lf, file, ["parquet"])
+        df: pl.DataFrame = lf.collect()
+        save_to_files(df, output_file, ["parquet"])
 
     return return_files
 
