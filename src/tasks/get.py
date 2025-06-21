@@ -7,9 +7,8 @@ from httpx import get
 from polars.polars import ColumnNotFoundError
 from prefect import task
 
-from tasks.clean import clean_decp_json
-
 from config import DATA_DIR, DATE_NOW, DECP_JSON_FILES, DIST_DIR
+from tasks.clean import clean_decp
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
 
@@ -79,7 +78,7 @@ def get_decp_json() -> list[Path]:
             path = decp_json["marches"]["marche"]
 
             # Nettoyage des modifications de titulaires
-            path = clean_decp_json(path)
+            path = clean_decp(path)
 
             df: pl.DataFrame = pl.json_normalize(
                 path,

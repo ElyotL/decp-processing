@@ -11,8 +11,7 @@ from tasks.transform import explode_titulaires, process_modifications
 
 
 @task
-
-def clean_decp_json(files: list[Path]):
+def clean_decp(files: list[Path]):
     return_files = []
     for file in files:
         #
