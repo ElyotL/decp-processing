@@ -1,9 +1,5 @@
-<<<<<<< paths-config
-from pathlib import Path
-=======
 import datetime
-import os
->>>>>>> main
+from pathlib import Path
 
 import polars as pl
 import polars.selectors as cs
