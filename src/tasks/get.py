@@ -84,7 +84,7 @@ def get_decp_json() -> list:
                 path,
                 strict=False,
                 # Pas de détection des dtypes, tout est pl.String pour commencer.
-                infer_schema_length=10000,
+                infer_schema_length=500000,
                 # encoder="utf8",
                 # Remplacement des "." dans les noms de colonnes par des "_" car
                 # en SQL ça oblige à entourer les noms de colonnes de guillemets

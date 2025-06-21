@@ -27,10 +27,6 @@ from tasks.transform import (
 
 @task(log_prints=True)
 def get_clean_concat():
-    if os.path.exists(DIST_DIR):
-        shutil.rmtree(DIST_DIR)
-    os.makedirs(DIST_DIR)
-
     print("Récupération des données source...")
     files = get_decp_json()
 
@@ -46,6 +42,10 @@ def get_clean_concat():
     print("Génération de l'artefact (statistiques) sur le base df...")
     df: pl.DataFrame = lf.collect(engine="streaming")
     generate_stats(df)
+
+    if os.path.exists(DIST_DIR):
+        shutil.rmtree(DIST_DIR)
+    os.makedirs(DIST_DIR)
 
     print("Enregistrement des DECP aux formats CSV, Parquet...")
     df: pl.DataFrame = sort_columns(df, BASE_DF_COLUMNS)
