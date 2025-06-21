@@ -189,7 +189,9 @@ def replace_by_modification_data(df: pl.DataFrame):
 
 
 def process_modifications(lf: pl.LazyFrame):
-    lf = remove_modifications_duplicates(lf)
+    # Pas encore au point, risque de trop gros effets de bord
+    # lf = remove_modifications_duplicates(lf)
+
     lf = replace_by_modification_data(lf)
     return lf
 
