@@ -94,7 +94,7 @@ def remove_suffixes_from_uid_column(df):
     return df
 
 
-def replace_by_modification_data(df: pl.DataFrame):
+def replace_by_modification_data(lf: pl.LazyFrame):
     """
     Gère les modifications dans le DataFrame des DECP.
     Cette fonction extrait les informations des modifications et les fusionne avec le DataFrame de base en ajoutant une ligne par modification
@@ -103,18 +103,18 @@ def replace_by_modification_data(df: pl.DataFrame):
     """
 
     # Étape 1: Créer une copie du DataFrame initial sans la colonne "modifications"
-    df_base = df.select(pl.all().exclude("modifications"))
+    lf_base = lf.select(pl.all().exclude("modifications"))
 
     # Étape 2: Explode le DataFrame pour avoir une ligne par modification
-    df_exploded = (
-        df.select("uid", "modifications")
+    lf_exploded = (
+        lf.select("uid", "modifications")
         .explode("modifications")
         .drop_nulls()
         .with_columns(pl.col("modifications").struct.field("modification"))
     )
 
     # Étape 3: Extraire les données des modifications
-    df_mods = df_exploded.select(
+    lf_mods = lf_exploded.select(
         "uid",
         pl.col("modification")
         .struct.field("dateNotificationModification")
@@ -128,10 +128,10 @@ def replace_by_modification_data(df: pl.DataFrame):
     )
 
     # Étape 4: Joindre les données de base pour chaque ligne de modification
-    df_concat = (
+    lf_concat = (
         pl.concat(
             [
-                df_base.select(
+                lf_base.select(
                     "uid",
                     "dateNotification",
                     "datePublicationDonnees",
@@ -139,7 +139,7 @@ def replace_by_modification_data(df: pl.DataFrame):
                     "dureeMois",
                     "titulaires",
                 ),
-                df_mods,
+                lf_mods,
             ],
             how="vertical_relaxed",
         )
@@ -163,15 +163,15 @@ def replace_by_modification_data(df: pl.DataFrame):
     )
 
     # Étape 5: Remplir les valeurs nulles en utilisant les dernières valeurs non-nulles pour chaque id
-    df_concat = df_concat.with_columns(
+    lf_concat = lf_concat.with_columns(
         pl.col("montant", "dureeMois", "titulaires")
         .fill_null(strategy="backward")
         .over("uid")
     )
 
     # Étape 5: Ajouter les données du DataFrame de base
-    df_final = df_concat.join(
-        df.drop(
+    lf_final = lf_concat.join(
+        lf.drop(
             [
                 "dateNotification",
                 "datePublicationDonnees",
@@ -185,7 +185,7 @@ def replace_by_modification_data(df: pl.DataFrame):
         how="left",
     )
 
-    return df_final
+    return lf_final
 
 
 def process_modifications(lf: pl.LazyFrame):
