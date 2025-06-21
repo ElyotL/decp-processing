@@ -1,3 +1,4 @@
+import os
 import shutil
 
 import polars as pl
@@ -26,7 +27,6 @@ from tasks.transform import (
 
 @task(log_prints=True)
 def get_clean_concat():
-
     print("Récupération des données source...")
     files = get_decp_json()
 
@@ -115,7 +115,7 @@ def decp_processing():
     get_clean_concat()
 
     # Fichiers dédiés à l'Open Data et decp.info
-    # make_decpinfo_data() -- Erreur de versions des packages : polars.exceptions.ModuleUpgradeRequiredError: pandas >= 2.2 requires sqlalchemy 2.0 or higher (found 1.4.54)
+    make_decpinfo_data()
 
     # Base de données SQLite dédiée aux activités du Datalab d'Anticor
     make_datalab_data()
