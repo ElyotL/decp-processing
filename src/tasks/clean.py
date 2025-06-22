@@ -1,4 +1,5 @@
 import datetime
+import math
 from pathlib import Path
 
 import polars as pl
@@ -157,7 +158,7 @@ def fix_data_types(df: pl.LazyFrame):
     return df
 
 
-def clean_decp_json(input_json_):
+def clean_decp_json_modifications(input_json_):
     """
     Nettoyage des données JSON des DECP pour les modifications des titulaires.
     Suppression des données qui ne correspondent pas au format attendu (ex: {"typeIdentifiant": "SIRET", "id": "12345678901234"}).
@@ -204,3 +205,13 @@ def clean_decp_json(input_json_):
         clean_json.append(entry)
     print(f"Nombre de titulaires nettoyés : {titulaires_cleaned_cpt}")
     return clean_json
+
+
+def fix_float_values_in_json(obj):
+    if (isinstance(obj, float) and math.isnan(obj)) or obj == "NC":
+        return None
+    elif isinstance(obj, dict):
+        return {k: fix_float_values_in_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [fix_float_values_in_json(item) for item in obj]
+    return obj
