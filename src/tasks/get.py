@@ -104,7 +104,9 @@ def get_decp_json() -> list[Path]:
             )
 
             # Pour l'instant on ne garde pas les champs qui demandent une explosion
-            # ou une eval à part titulaires
+            # ou une eval à part:
+            # - titulaires
+            # - modifications
 
             columns_to_drop = [
                 # Pas encore incluses
