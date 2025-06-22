@@ -21,12 +21,21 @@ MODIFICATION_SCHEMA_2022 = pl.Struct(
                 "datePublicationDonneesModification": pl.String,
                 "montant": pl.String,
                 "dureeMois": pl.String,
-                "titulaires.typeIdentifiant": pl.String,
-                "titulaires.id": pl.String,
             }
         )
     }
 )
+
+MODIFICATION_SCHEMA_PLAT_2022 = {
+    "modification.id": pl.Int32,  # can switch down to UInt8 when https://github.com/pola-rs/polars/pull/16105 is merged
+    "modification.dateNotificationModification": pl.String,
+    "modification.datePublicationDonneesModification": pl.String,
+    "modification.montant": pl.String,
+    "modification.dureeMois": pl.String,
+    "modification.titulaires.typeIdentifiant": pl.String,
+    "modification.titulaires.id": pl.String,
+}
+
 
 MARCHE_SCHEMA_2022 = {
     "procedure": pl.String,
@@ -46,8 +55,10 @@ MARCHE_SCHEMA_2022 = {
     "lieuExecution.code": pl.String,
     "lieuExecution.typeCode": pl.String,
     "uid": pl.String,
-    "considerationsSociales": pl.List(pl.String),
-    "considerationsEnvironnementales": pl.List(pl.String),
+    "considerationsSociales": pl.Struct({"considerationSociale": pl.List(pl.String)}),
+    "considerationsEnvironnementales": pl.Struct(
+        {"considerationEnvironnementale": pl.List(pl.String)}
+    ),
     "marcheInnovant": pl.String,
     "attributionAvance": pl.String,
     "sousTraitanceDeclaree": pl.String,
@@ -55,7 +66,7 @@ MARCHE_SCHEMA_2022 = {
     "offresRecues": pl.String,
     "typeGroupementOperateurs": pl.String,
     "idAccordCadre": pl.String,
-    "tauxAvance": pl.String,
-    "origineUE": pl.String,
-    "origineFrance": pl.String,
+    "tauxAvance": pl.Float64,
+    "origineUE": pl.Float64,
+    "origineFrance": pl.Float64,
 }
