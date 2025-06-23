@@ -1,4 +1,6 @@
 import datetime
+import io
+import json
 import math
 from pathlib import Path
 
@@ -158,7 +160,7 @@ def fix_data_types(df: pl.LazyFrame):
     return df
 
 
-def clean_decp_json_modifications(input_json_):
+def clean_decp_json_modifications(input_json_: dict):
     """
     Nettoyage des données JSON des DECP pour les modifications des titulaires.
     Suppression des données qui ne correspondent pas au format attendu (ex: {"typeIdentifiant": "SIRET", "id": "12345678901234"}).
@@ -207,11 +209,26 @@ def clean_decp_json_modifications(input_json_):
     return clean_json
 
 
-def fix_float_values_in_json(obj):
+def fix_nan_nc(obj):
+    """Paroure tout le JSON pour remplacer NaN et NC par null."""
     if (isinstance(obj, float) and math.isnan(obj)) or obj == "NC":
         return None
     elif isinstance(obj, dict):
-        return {k: fix_float_values_in_json(v) for k, v in obj.items()}
+        return {k: fix_nan_nc(v) for k, v in obj.items()}
     elif isinstance(obj, list):
-        return [fix_float_values_in_json(item) for item in obj]
+        return [fix_nan_nc(item) for item in obj]
     return obj
+
+
+def load_and_fix_json(input_buffer):
+    json_data = json.load(input_buffer)
+
+    print("Remplacement des NaN et NC par null...")
+    json_data = fix_nan_nc(json_data)
+    print("Correction de la structure des modifications...")
+    json_data = clean_decp_json_modifications(json_data)
+
+    fixed_buffer = io.StringIO()
+    json.dump(json_data, fixed_buffer)
+    fixed_buffer.seek(0)  # rewind to beginning so it can be read
+    return fixed_buffer

@@ -1,7 +1,8 @@
-import json
 import os
 from pathlib import Path
 
+import ijson
+import orjson
 import polars as pl
 from httpx import get
 from polars.polars import ColumnNotFoundError
@@ -9,7 +10,7 @@ from prefect import task
 
 from config import DATA_DIR, DATE_NOW, DECP_JSON_FILES, DIST_DIR
 from schemas import MARCHE_SCHEMA_2022
-from tasks.clean import clean_decp_json_modifications, fix_float_values_in_json
+from tasks.clean import load_and_fix_json
 from tasks.output import save_to_files
 from tasks.setup import create_table_artifact
 
@@ -72,27 +73,9 @@ def get_decp_json() -> list[Path]:
                     "views": decp_json_metadata["metrics"]["views"],
                 }
 
-            with open(decp_json_file, encoding="utf8") as f:
-                decp_json = json.load(f)
-
             filename = json_file["file_name"]
-            path = decp_json["marches"]["marche"]
 
-            # Nettoyage des NC et des NaN dans les JSON
-            path = fix_float_values_in_json(path)
-
-            # Nettoyage des modifications de titulaires
-            path = clean_decp_json_modifications(path)
-
-            df: pl.DataFrame = pl.json_normalize(
-                path,
-                strict=False,
-                schema=MARCHE_SCHEMA_2022,
-                # encoder="utf8",
-                # Remplacement des "." dans les noms de colonnes par des "_" car
-                # en SQL ça oblige à entourer les noms de colonnes de guillemets
-                separator="_",
-            )
+            df: pl.DataFrame = json_to_df(decp_json_file, "marches.marche")
 
             artifact_row["open_data_dataset"] = "data.gouv.fr JSON"
             artifact_row["download_date"] = date_now
@@ -164,3 +147,21 @@ def get_decp_json() -> list[Path]:
     os.environ["downloaded_files"] = ",".join(downloaded_files)
 
     return return_files
+
+
+def json_to_df(json_path_file, marches_path) -> pl.DataFrame:
+    ndjson_path = json_path_file.with_suffix(".ndjson")
+    json_to_ndjson(json_path_file, ndjson_path, marches_path=marches_path)
+    schema = MARCHE_SCHEMA_2022
+    dff = pl.read_ndjson(ndjson_path, schema=schema)
+    return dff
+
+
+def json_to_ndjson(json_path: Path, ndjson_path: Path, marches_path: str):
+    with open(json_path, "rb") as _in_f:
+        with open(ndjson_path, "wb") as out_f:
+            _data = load_and_fix_json(_in_f)
+            marches = ijson.items(_data, f"{marches_path}.item", use_float=True)
+            for marche in marches:
+                out_f.write(orjson.dumps(marche))
+                out_f.write(b"\n")
