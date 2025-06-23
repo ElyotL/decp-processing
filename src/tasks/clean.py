@@ -32,8 +32,6 @@ def clean_decp(files: list[Path]):
         #     "modalitesExecution_modaliteExecution": "modalitesExecution"
         # })
 
-        # Remplacement des valeurs nulles
-        lf = lf.with_columns(pl.col(pl.String).replace("NC", None))
         # Nettoyage des identifiants de marchés
         lf = lf.with_columns(pl.col("id").str.replace_all(r"[ ,\\./]", "_"))
 
@@ -221,7 +219,7 @@ def fix_nan_nc(obj):
 
 
 def load_and_fix_json(input_buffer):
-    json_data = json.load(input_buffer)
+    json_data = json.load(input_buffer)["marches"]["marche"]
 
     print("Remplacement des NaN et NC par null...")
     json_data = fix_nan_nc(json_data)

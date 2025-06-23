@@ -161,7 +161,7 @@ def json_to_ndjson(json_path: Path, ndjson_path: Path, marches_path: str):
     with open(json_path, "rb") as _in_f:
         with open(ndjson_path, "wb") as out_f:
             _data = load_and_fix_json(_in_f)
-            marches = ijson.items(_data, f"{marches_path}.item", use_float=True)
+            marches = ijson.items(_data, "item", use_float=True)
             for marche in marches:
                 out_f.write(orjson.dumps(marche))
                 out_f.write(b"\n")
