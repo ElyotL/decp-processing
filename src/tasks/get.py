@@ -96,11 +96,11 @@ def get_decp_json() -> list[Path]:
 
             columns_to_drop = [
                 # Pas encore incluses
-                "typesPrix_typePrix",
-                "considerationsEnvironnementales_considerationEnvironnementale",
-                "considerationsSociales_considerationSociale",
-                "techniques_technique",
-                "modalitesExecution_modaliteExecution",
+                "typesPrix",
+                "considerationsEnvironnementales",
+                "considerationsSociales",
+                "techniques",
+                "modalitesExecution",
                 "actesSousTraitance",
                 "modificationsActesSousTraitance",
                 # Champs de concessions
@@ -151,17 +151,22 @@ def get_decp_json() -> list[Path]:
 
 def json_to_df(json_path_file, marches_path) -> pl.DataFrame:
     ndjson_path = json_path_file.with_suffix(".ndjson")
-    json_to_ndjson(json_path_file, ndjson_path, marches_path=marches_path)
+    json_to_ndjson(json_path_file, ndjson_path)
     schema = MARCHE_SCHEMA_2022
     dff = pl.read_ndjson(ndjson_path, schema=schema)
     return dff
 
 
-def json_to_ndjson(json_path: Path, ndjson_path: Path, marches_path: str):
+def json_to_ndjson(json_path: Path, ndjson_path: Path):
     with open(json_path, "rb") as _in_f:
         with open(ndjson_path, "wb") as out_f:
             _data = load_and_fix_json(_in_f)
             marches = ijson.items(_data, "item", use_float=True)
             for marche in marches:
-                out_f.write(orjson.dumps(marche))
+                # Aplatissement de acheteur et lieuExecution (acheteur_id, etc.)
+                marche = pl.convert.normalize._simple_json_normalize(
+                    marche, "_", 10, lambda x: x
+                )
+                marche = orjson.dumps(marche)
+                out_f.write(marche)
                 out_f.write(b"\n")
