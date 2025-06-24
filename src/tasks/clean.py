@@ -75,14 +75,14 @@ def clean_decp(files: list[Path]):
             )
         )
 
-        # Fix datatypes
-        lf = fix_data_types(lf)
-
         # Explosion et traitement des modifications
         lf = process_modifications(lf)
 
         # Explosion des titulaires
         lf = explode_titulaires(lf)
+
+        # Fix datatypes
+        lf = fix_data_types(lf)
 
         output_file = DIST_DIR / "clean" / file.name
         return_files.append(output_file)
