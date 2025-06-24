@@ -21,6 +21,7 @@ MODIFICATION_SCHEMA_2022 = pl.Struct(
                 "datePublicationDonneesModification": pl.String,
                 "montant": pl.String,
                 "dureeMois": pl.String,
+                "titulaires": pl.List(TITULAIRE_SCHEMA_2022),
             }
         )
     }
