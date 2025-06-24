@@ -94,7 +94,7 @@ def clean_decp(files: list[Path]):
     return return_files
 
 
-def fix_data_types(df: pl.LazyFrame):
+def fix_data_types(lf: pl.LazyFrame):
     numeric_dtypes = {
         "dureeMois": pl.Int16,
         # "dureeMoisModification": pl.Int16,
@@ -114,7 +114,7 @@ def fix_data_types(df: pl.LazyFrame):
     for column, dtype in numeric_dtypes.items():
         print("Fixing column", column, "...")
         # Les valeurs qui ne sont pas des chiffres sont converties en null
-        df = df.with_columns(pl.col(column).cast(dtype, strict=False))
+        lf = lf.with_columns(pl.col(column).cast(dtype, strict=False))
 
     # Convert date columns to datetime using str.strptime
     dates_col = [
@@ -128,14 +128,14 @@ def fix_data_types(df: pl.LazyFrame):
         # "datePublicationDonneesModificationModification",
     ]
     print("Fixing dates...")
-    df = df.with_columns(
+    lf = lf.with_columns(
         # Les valeurs qui ne sont pas des dates sont converties en null
         pl.col(dates_col).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
     )
 
     # Suppression dans dates dans le futur
     for col in dates_col:
-        df = df.with_columns(
+        lf = lf.with_columns(
             pl.when(pl.col(col) > datetime.datetime.now())
             .then(None)
             .otherwise(pl.col(col))
@@ -147,7 +147,7 @@ def fix_data_types(df: pl.LazyFrame):
     cols = ("sousTraitanceDeclaree", "attributionAvance", "marcheInnovant")
     str_cols = cs.by_name(cols) & cs.string()
     float_cols = cs.by_name(cols) & cs.float()
-    df = df.with_columns(
+    lf = lf.with_columns(
         pl.when(str_cols.str.to_lowercase() == "true")
         .then(True)
         .when(str_cols.str.to_lowercase() == "false")
@@ -155,7 +155,7 @@ def fix_data_types(df: pl.LazyFrame):
         .otherwise(None)
         .name.keep()
     ).with_columns(float_cols.fill_nan(None).cast(pl.Boolean).name.keep())
-    return df
+    return lf
 
 
 def clean_decp_json_modifications(input_json_: dict):
