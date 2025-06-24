@@ -36,6 +36,7 @@ with open(os.getenv("DECP_JSON_FILES_PATH", DATA_DIR / "decp_json_files.json")) 
     DECP_JSON_FILES = json.load(f)
 
 # Liste et ordre des colonnes pour le mono dataframe de base (avant normalisation et spécialisation)
+# Sert aussi à vérifier qu'au moins ces colonnes sont présentes (d'autres peuvent être présentes en plus)
 BASE_DF_COLUMNS = [
     "uid",
     "id",
