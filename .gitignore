@@ -18,3 +18,4 @@ data/decp-*.json
 test.*
 wiki
 *.lock
+*.ndjson
