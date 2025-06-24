@@ -50,10 +50,10 @@ MARCHE_SCHEMA_2022 = {
     "dateNotification": pl.String,
     "objet": pl.String,
     "montant": pl.String,
-    "acheteur.id": pl.String,
+    "acheteur_id": pl.String,
     "source": pl.String,
-    "lieuExecution.code": pl.String,
-    "lieuExecution.typeCode": pl.String,
+    "lieuExecution_code": pl.String,
+    "lieuExecution_typeCode": pl.String,
     "uid": pl.String,
     "considerationsSociales": pl.Struct({"considerationSociale": pl.List(pl.String)}),
     "considerationsEnvironnementales": pl.Struct(
