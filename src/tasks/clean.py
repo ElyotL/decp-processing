@@ -95,6 +95,7 @@ def clean_decp(files: list[Path]):
 
 
 def fix_data_types(lf: pl.LazyFrame):
+    print("Correction des datatypes...")
     numeric_dtypes = {
         "dureeMois": pl.Int16,
         # "dureeMoisModification": pl.Int16,
@@ -111,8 +112,8 @@ def fix_data_types(lf: pl.LazyFrame):
         "origineUE": pl.Float64,
     }
 
+    # Champs numériques
     for column, dtype in numeric_dtypes.items():
-        print("Fixing column", column, "...")
         # Les valeurs qui ne sont pas des chiffres sont converties en null
         lf = lf.with_columns(pl.col(column).cast(dtype, strict=False))
 
@@ -127,7 +128,8 @@ def fix_data_types(lf: pl.LazyFrame):
         # "datePublicationDonneesModificationActeSousTraitance",
         # "datePublicationDonneesModificationModification",
     ]
-    print("Fixing dates...")
+
+    # Fix dates
     lf = lf.with_columns(
         # Les valeurs qui ne sont pas des dates sont converties en null
         pl.col(dates_col).str.strptime(pl.Date, format="%Y-%m-%d", strict=False)
@@ -143,7 +145,6 @@ def fix_data_types(lf: pl.LazyFrame):
         )
 
     # Champs booléens
-    print("Fixing booleans...")
     cols = ("sousTraitanceDeclaree", "attributionAvance", "marcheInnovant")
     str_cols = cs.by_name(cols) & cs.string()
     float_cols = cs.by_name(cols) & cs.float()
