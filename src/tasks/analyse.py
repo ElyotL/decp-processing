@@ -1,4 +1,6 @@
 import polars as pl
+import os
+from tasks.setup import create_table_artifact
 from datetime import datetime
 # from config import DIST_DIR
 from tasks.get import get_stats
