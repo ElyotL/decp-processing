@@ -102,6 +102,11 @@ def generate_stats(df: pl.DataFrame):
 
 
 def count_and_print_modifications(json_path, i_modif=None, i_marche_modifie=None):
+    """
+    si i_modif = i_marche_modifie = None, le code print le nombre de marchés modifiés (1 marché avec 17 modif, 4 avec 18 modifs, etc)
+    si i_modif = 13 et i_marche_modifie = None, le code print tout les marchés avec 13 modification et leur contenu.
+    si i_modif = 13 et i_marche_modifie = 3, le code print le contenu du 3ème marché avec 13 modifications uniquement.
+    """
     print(f"📥 Lecture du fichier JSON : {json_path}")
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -150,7 +155,7 @@ def count_and_print_modifications(json_path, i_modif=None, i_marche_modifie=None
     return compteur
 
 
-count_and_print_modifications("data/decp-2022.json",i_modif=11)
+count_and_print_modifications("data/decp-2022.json",i_modif=11,i_marche_modifie=2)
 
 
 
